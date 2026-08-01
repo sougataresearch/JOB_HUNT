@@ -181,7 +181,7 @@ sequenceDiagram
     O->>ATS: analyze(profile, posting)
     ATS-->>O: ATSReport (keyword gaps)
     O->>R: customize(profile, posting, ATSReport)
-    R-->>O: TailoredResume (LaTeX) 
+    R-->>O: TailoredResume (LaTeX)
     R->>R: compile to PDF, extract text, verify ATS-readability
     O->>C: draft(profile, posting, TailoredResume)
     C-->>O: CoverLetter (LaTeX → PDF)

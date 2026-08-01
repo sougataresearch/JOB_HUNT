@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jobhunt-core"
+version = "0.1.0"
+description = "Local-first AI career assistant — core library (agents, LLM layer, storage, document rendering)."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "sougataresearch" }]
+# License is proposed (MIT) but not yet finalized — decisions.md ADR-0009,
+# tasks.md T1.6. Applied here and as a LICENSE file in Phase 18.
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/sougataresearch/JOB_HUNT"
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "pre-commit>=3.7",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jobhunt_core"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+# Recent ruff versions format Python code fences embedded in Markdown by
+# default; the illustrative pseudocode in the root-level docs (api.md, etc.)
+# is intentionally not strict, runnable Python, so exclude it from linting.
+extend-exclude = ["*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "D"]
+# D203/D211 and D212/D213 are mutually exclusive pydocstyle pairs;
+# ignoring the *203/*213 half is the common convention (rules.md §Coding Conventions).
+ignore = ["D203", "D213"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+mypy_path = "src"
+files = ["src/jobhunt_core"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=jobhunt_core --cov-report=term-missing"

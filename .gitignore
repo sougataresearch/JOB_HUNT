@@ -1,0 +1,37 @@
+# User data — never committed (rules.md §Secrets Management, design.md §7)
+data/
+config/local.yaml
+
+# Secrets
+.env
+.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling caches
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# LaTeX build artifacts (documents/, data/documents/ — decisions.md ADR-0006/0007)
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# OS
+.DS_Store
+Thumbs.db

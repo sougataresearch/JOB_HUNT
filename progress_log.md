@@ -71,3 +71,73 @@ go-ahead per `implementation_order.md` step 46.
 **Next session should:** confirm the open items above, then begin
 Phase 1 (`phases.md`) per the exact sequence in
 `implementation_order.md`, starting at step 1 (T1.1).
+
+---
+
+## 2026-08-02 — Phase 1 (Foundation) complete
+
+**Context:** Maintainer requested the repo be pushed to GitHub (done,
+see commit history), then asked to complete Phase 1 — Foundation.
+
+**Built, per `tasks.md` T1.1–T1.5:**
+- `pyproject.toml` — `src/` layout, package `jobhunt-core` (import name
+  `jobhunt_core`), hatchling build backend, `dev` extra
+  (ruff, mypy, pytest, pytest-cov, pre-commit). No runtime dependencies
+  yet — deliberately deferred to Phase 2 (pydantic-settings), Phase 3
+  (LLM SDKs), Phase 4 (SQLAlchemy/Alembic), per `rules.md` AI Coding
+  Rule 2 (don't expand scope beyond the phase in progress).
+- `.gitignore`, `.env.example` per `config.md` §Environment Variables
+  and `rules.md` §Secrets Management.
+- `ruff` (lint + format) and `mypy --strict` configured in
+  `pyproject.toml`; `.pre-commit-config.yaml` wired to both plus
+  standard hygiene hooks.
+- `.github/workflows/ci.yml` — lint, format-check, mypy, pytest on
+  every push/PR to `main`.
+- Full `src/jobhunt_core/` package tree per `folder_structure.md`:
+  `agents/`, `llm/` (+`providers/`), `storage/` (+`models/`,
+  `repositories/`), `schemas/`, `documents/` (+`parsers/`), `sources/`,
+  `prompts/`, `orchestration/`, `config/` — each an `__init__.py` stub
+  with a one-line docstring, no logic yet (T1.4).
+- `errors.py` — `JobHuntError` base class only (message + `.remedy`,
+  design.md §10); subclasses (`ConfigError`, `LLMProviderError`, etc.)
+  deferred to the phase that first needs them.
+- `logging_config.py` — `configure_logging(log_dir, level)`: stderr +
+  rotating JSON-lines file handler, idempotent within a process
+  (T1.5). The per-run structured event (`RunEvent`/`log_run_event`,
+  api.md §8) is deferred to Phase 4+ since it needs `schemas/`.
+- Tests: `tests/test_smoke.py`, `tests/test_errors.py`,
+  `tests/test_logging_config.py`, `tests/conftest.py` (a fixture
+  resetting the shared `jobhunt` logger between tests — needed because
+  `configure_logging`'s idempotency, correct for production, otherwise
+  leaks state across tests).
+
+**Verified, not assumed** (`rules.md` AI Coding Rule 4 — actual tool
+output, run in this session):
+- `pip install -e ".[dev]"` — succeeds.
+- `ruff check .` — all checks passed.
+- `ruff format --check .` — all files formatted (after adding
+  `extend-exclude = ["*.md"]`: newer ruff formats Python fences
+  embedded in Markdown by default, which would have reformatted the
+  illustrative pseudocode in `api.md`/`agents.md`/etc. — excluded since
+  those docs aren't meant to be strict, runnable Python).
+- `mypy` (strict, scoped to `src/jobhunt_core`) — no issues in 16
+  source files.
+- `pytest` — 5 passed, coverage reported (98% on the current, mostly
+  stub tree).
+- `pre-commit run --all-files` (after `git add`, since pre-commit only
+  sees tracked files) — all 7 hooks pass. The trailing-whitespace hook
+  auto-fixed one line in `architecture.md` (trivial, kept).
+
+**Deviation from `tasks.md` T1.6:** not actioned — per its own
+definition ("Expected files: none until Phase 18"), it's a checkpoint
+to reconfirm before Phase 18, not a Phase 1 deliverable.
+
+**Still open** (carried forward, unchanged from the entry above):
+license confirmation, first job source pick, Ranking agent-vs-mode
+decision, Windows LaTeX install docs — plus the three `final_review.md`
+mitigations (WAL mode, `discover_plugins()`, LLM batch/concurrency
+mode), none of which were due in Phase 1 itself.
+
+**Not yet done:** Phase 1 commit has not been pushed yet — next action
+in this session is to commit and push. Phases 2+ (`phases.md`) have not
+started.
