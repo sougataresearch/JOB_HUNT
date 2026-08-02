@@ -2,8 +2,8 @@
 
 Subtypes are added by the phase that first needs them (rules.md AI
 Coding Rule 2), each subclassing ``JobHuntError`` defined here.
-Remaining subtypes (``LLMProviderError``, ``SourceFetchError``,
-``RenderError``, ``StorageError``, ...) arrive in later phases.
+Remaining subtypes (``SourceFetchError``, ``RenderError``,
+``StorageError``, ...) arrive in later phases.
 """
 
 from __future__ import annotations
@@ -41,4 +41,16 @@ class ConfigError(JobHuntError):
     E.g. an enabled agent references a provider whose API key
     environment variable is not set (config.md §Config Validation
     Rules, phases.md Phase 2 acceptance criteria).
+    """
+
+
+class LLMProviderError(JobHuntError):
+    """Raised when an LLM provider call fails in a way callers must handle.
+
+    Covers: the shared retry policy (design.md §11) being exhausted, a
+    non-retryable provider error (auth, bad request, content policy),
+    an unregistered provider name (api.md §9 Plugin API), or a
+    provider returning output that does not satisfy a requested
+    structured-output schema (rules.md AI Coding Rule 1 territory —
+    never silently invent a parsed result).
     """

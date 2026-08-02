@@ -218,3 +218,93 @@ test noted above, due whenever `orchestration/registry.py` is built.
 
 **Not yet done:** commit/push for this phase — next action. Phase 3
 (Core AI / LLM Provider Layer) has not started.
+
+---
+
+## 2026-08-02 — Phase 3 (Core AI / LLM Provider Layer) complete
+
+**Built, per `tasks.md` T3.1–T3.5:** `LLMProvider` Protocol +
+`LLMResponse`/`StructuredLLMResponse` (`llm/provider.py`,
+`llm/types.py`); the shared `call_with_retry()` backoff policy
+(`llm/retry.py`, algorithm-only, provider-agnostic — each adapter
+supplies its own `is_retryable` classifier since 429/5xx/timeout
+exception *types* differ per SDK); `AnthropicProvider`, `OpenAIProvider`,
+`OllamaProvider` (`llm/providers/`), each registered via
+`@register_provider` and structured-output-capable. `LLMProviderError`
+added to the exception hierarchy. Extended Phase 2's `ProviderConfig`
+with `cost_per_mtok_in`/`cost_per_mtok_out` (default `0.0` — see below).
+
+**On "recorded cassettes" (tasks.md T3.2/T3.3 wording) — an explicit,
+honest deviation:** this environment has no real Anthropic/OpenAI API
+credentials, so a genuine live-traffic recording was not possible, and
+fabricating one would violate `rules.md` AI Coding Rule 4. Instead:
+real `anthropic.Anthropic`/`openai.OpenAI` client instances are
+constructed with an `httpx.MockTransport` swapped in for the HTTP
+layer, so the actual SDK code (request building, response parsing,
+exception typing) runs for real — only the network round-trip is
+faked. Before writing each adapter, the exact request/response/error
+JSON shapes were verified empirically against the *installed* SDK
+versions (anthropic 0.120.2, openai 2.52.0) via throwaway scripts, not
+assumed from training memory — e.g. confirmed that a 429 with
+Anthropic's error envelope really does raise `anthropic.RateLimitError`
+with `isinstance` true, that a `tool_use` block's `.input` is already a
+plain dict, and that OpenAI's `response_format=json_schema` round-trips
+correctly. This is real, high-fidelity integration coverage, just not
+literally a "recorded cassette" — flagging the terminology gap rather
+than silently reinterpreting the task.
+
+**Real bug the MockTransport approach caught, fixed before commit:** the
+first test helper built a raw `anthropic.Anthropic`/`openai.OpenAI`
+client without `max_retries=0`, so the SDK's own default internal
+retries (max_retries=2, i.e. 3 attempts) compounded with jobhunt's own
+`call_with_retry` loop — a persistent-500 test expected 2 total HTTP
+calls and got 6. Fixed by matching what the adapters themselves do:
+always construct the real client with `max_retries=0` so jobhunt's
+retry policy has exclusive control, exactly the "don't double up"
+design.md §11 already called for — this is a concrete, verified
+demonstration of why that rule exists, not just a stated principle.
+
+**Ollama adapter is lower-confidence than the other two, and this is
+stated in its own module docstring:** no live Ollama server is
+available in this environment, so its `/api/generate` request/response
+shape follows training knowledge of Ollama's documented REST API, not
+an empirically confirmed live response (unlike Anthropic/OpenAI, which
+were verified against the real installed SDKs). Its tests exercise the
+adapter's own logic thoroughly via `httpx.MockTransport`, but that only
+proves internal consistency with the *assumed* shape, not fidelity to
+a real server. Matches tasks.md T3.4's own "documented as best-effort"
+framing — recorded here so this caveat isn't lost. Should be smoke-
+tested against a real local Ollama install before anyone relies on it.
+
+**Cost accounting is 0.0 by default, deliberately:** rather than
+hardcode a per-model pricing table (a figure I have no verified,
+current source for — `claude-sonnet-5`/`gpt-5` are recent enough that
+guessing a $/Mtok rate would risk presenting a fabricated number as
+fact, `rules.md` AI Coding Rule 4), `cost_per_mtok_in`/`out` live in
+`config/llm.yaml` as user-filled data, defaulting to `0.0` (=
+"unknown"), not an invented estimate.
+
+**Verified, not assumed:** `ruff check`, `ruff format --check`, `mypy`
+(strict), full `pytest` (41 passed, 99% coverage), and
+`pre-commit run --all-files` (after adding the new SDKs to the mypy
+hook's `additional_dependencies`, same isolated-venv issue as Phase 2).
+
+**Deviation from `tasks.md` T3.1:** no `build_provider_from_settings`-
+style factory connecting `Settings.llm.providers[name]` to a
+constructed adapter instance was added — that wiring naturally belongs
+where `RunContext` is built (orchestration, once agents exist,
+Phase 5+); building it now would have no real caller yet
+(`rules.md` no-speculative-abstraction). Each adapter's constructor
+takes its own explicit args and is fully unit-testable standalone.
+
+**Still open:** everything carried from prior entries, unchanged
+(license confirmation, first job source pick, Ranking agent-vs-mode
+decision, Windows LaTeX docs, WAL mode, `discover_plugins()` for
+*agents* specifically — the LLM provider package now has its own
+explicit-import discovery, done this phase — LLM batch/concurrency
+mode, `AgentRegistry`-level test). Added: smoke-test the Ollama adapter
+against a real local server before relying on it; add real per-model
+pricing to `config/llm.yaml` once verified figures are available.
+
+**Not yet done:** commit/push for this phase — next action. Phase 4
+(Storage & Schemas) has not started.

@@ -4,18 +4,29 @@
 llm:
   default_provider: anthropic
   providers:
+    # cost_per_mtok_in/out default to 0.0 (unknown) below -- fill in
+    # from each provider's official current pricing page if you want
+    # real cost_estimate_usd figures. Not pre-filled here: this repo
+    # has no verified, up-to-date pricing to hardcode (rules.md AI
+    # Coding Rule 4), and a stale guess is worse than an explicit 0.0.
     anthropic:
       base_model: claude-sonnet-5
       timeout_s: 60
       max_retries: 3
+      cost_per_mtok_in: 0.0
+      cost_per_mtok_out: 0.0
     openai:
       base_model: gpt-5
       timeout_s: 60
       max_retries: 3
+      cost_per_mtok_in: 0.0
+      cost_per_mtok_out: 0.0
     ollama:
       base_model: llama3
       timeout_s: 120
       max_retries: 2
+      cost_per_mtok_in: 0.0
+      cost_per_mtok_out: 0.0
   limits:
     per_run_max_cost_usd: 2.00
     per_day_max_cost_usd: 20.00

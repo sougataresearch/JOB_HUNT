@@ -45,11 +45,21 @@ _PROVIDER_API_KEY_ENV_VARS = {
 
 
 class ProviderConfig(BaseModel):
-    """One entry under ``llm.providers`` in ``config/llm.yaml``."""
+    """One entry under ``llm.providers`` in ``config/llm.yaml``.
+
+    ``cost_per_mtok_in``/``cost_per_mtok_out`` default to 0.0
+    (unknown), not a guessed figure — this project has no verified,
+    current-as-of-today pricing to hardcode (rules.md AI Coding Rule
+    4). Fill them in from the provider's official pricing page if you
+    want cost estimates in ``LLMResponse.cost_estimate_usd``
+    (phases.md Phase 3 deliverable: "cost/token accounting hook").
+    """
 
     base_model: str
     timeout_s: int = 60
     max_retries: int = 3
+    cost_per_mtok_in: float = 0.0
+    cost_per_mtok_out: float = 0.0
 
 
 class LimitsConfig(BaseModel):
