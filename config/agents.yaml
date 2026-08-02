@@ -1,0 +1,19 @@
+# Per-agent feature flags and model tiering (config.md §Feature Flags).
+# Disabling an agent here means it is skipped at startup and its
+# provider's API key is not required (config.md §Config Validation Rules).
+agents:
+  resume_analysis: { enabled: true, provider: anthropic, model: claude-sonnet-5 }
+  skill_gap: { enabled: true, provider: anthropic, model: claude-sonnet-5 }
+  job_search: { enabled: true }
+  job_matching: { enabled: true, provider: anthropic, model: claude-sonnet-5 }
+  ats_optimization: { enabled: true, provider: anthropic, model: claude-haiku-4-5 }
+  resume_customization: { enabled: true, provider: anthropic, model: claude-sonnet-5 }
+  cover_letter: { enabled: true, provider: anthropic, model: claude-sonnet-5 }
+  email_generation: { enabled: true, provider: anthropic, model: claude-haiku-4-5 }
+  application_tracking: { enabled: true }
+  interview_prep: { enabled: true, provider: anthropic, model: claude-sonnet-5 }
+  career_analytics: { enabled: true, provider: anthropic, model: claude-haiku-4-5 }
+  # Future agents (roadmap.md) — present but disabled until their phase lands.
+  linkedin: { enabled: false }
+  networking: { enabled: false }
+  salary_negotiation: { enabled: false }

@@ -141,3 +141,80 @@ mode), none of which were due in Phase 1 itself.
 **Not yet done:** Phase 1 commit has not been pushed yet — next action
 in this session is to commit and push. Phases 2+ (`phases.md`) have not
 started.
+
+---
+
+## 2026-08-02 — Phase 2 (Configuration) complete
+
+**Built, per `tasks.md` T2.1–T2.3:**
+- `config/llm.yaml`, `config/agents.yaml`, `config/sources.yaml` —
+  committed defaults matching `config.md`'s worked examples exactly.
+- `config/local.yaml.example` — documents the gitignored personal-
+  override file (`design.md` §8's second layer); not explicitly listed
+  in `tasks.md` T2.1 but present in `folder_structure.md` and needed to
+  make the override layer usable/testable.
+- `src/jobhunt_core/config/settings.py` — `Settings` (pydantic-settings)
+  + `load_settings()`. YAML defaults and `local.yaml` are merged with an
+  explicit recursive deep-merge in plain Python *before* ever
+  constructing `Settings` (passed as constructor kwargs), rather than
+  via pydantic-settings' built-in `YamlConfigSettingsSource` — chosen
+  because that library mechanism arbitrates an entire top-level field
+  per source rather than deep-merging nested keys across sources, which
+  would let a `local.yaml` override of one agent's `enabled` flag wipe
+  out every sibling agent from the defaults. Env vars/`.env` use
+  pydantic-settings' ordinary precedence since they don't overlap in
+  field names with the YAML-sourced `llm`/`agents`/`sources` fields.
+- `src/jobhunt_core/config/secrets.py` — `redact()` display helper
+  (tasks.md T2.2).
+- `ConfigError(JobHuntError)` added to `errors.py` (design.md §10).
+- Tests: `tests/config/test_settings.py` (7 cases covering all three
+  precedence layers plus the missing-secret and disabled-agent paths),
+  `tests/config/test_secrets.py`.
+
+**Real bug caught by the tests, fixed before commit:** the first cut of
+`_validate_required_secrets()` fell back to `llm.default_provider` for
+any enabled agent with no explicit `provider` set. That's wrong per
+`config.md`'s own worked example — `job_search`/`application_tracking`
+deliberately omit `provider` *because they don't require an LLM at
+all*, not because they should inherit the default. Fixed to only
+enforce a secret requirement for agents with an explicit `provider`
+field; `test_disabled_agent_does_not_require_secret` is what caught the
+original bug (it failed against the real intent before the fix).
+
+**Verified, not assumed** (`rules.md` AI Coding Rule 4): `ruff check`,
+`ruff format --check`, `mypy` (strict), `pytest` (15 passed), and
+`pre-commit run --all-files` all pass. Also ran `load_settings()`
+against the real `config/` files directly (not just test fixtures): it
+correctly raises `ConfigError` with no `ANTHROPIC_API_KEY` set, and
+correctly loads all 11 v1 agents as enabled once the key is set.
+One tooling snag: the `mypy` pre-commit hook runs in its own isolated
+venv and doesn't see the project's installed dependencies — added
+`additional_dependencies` (pydantic, pydantic-settings, types-PyYAML)
+to `.pre-commit-config.yaml`'s mypy hook to fix.
+
+**Doc reconciliation:** `config.md`'s "Rate Limits & Cost Ceilings"
+section was ambiguous about which YAML file `limits:` lives in (it
+wasn't one of `tasks.md` T2.1's three named files) and duplicated
+sources.yaml's per-source rate limiting under a separate global key.
+Resolved: `limits` nests under `llm:` in `llm.yaml`; the redundant
+global `job_source_rate_limit_per_min` was dropped in favor of the
+per-source `rate_limit_per_min` already in `sources.yaml`. Edited in
+the same change per `rules.md` §Configuration Rules.
+
+**Deviation from `tasks.md` T2.3:** its completion checklist references
+disabling an agent making it "absent from `AgentRegistry.available()`"
+— `orchestration/registry.py` doesn't exist yet (not a Phase 2
+deliverable). Implemented and tested `Settings.enabled_agent_names()`
+as the config-layer equivalent instead; a real `AgentRegistry`
+integration test should be added once `orchestration/registry.py` is
+built (flagged here so it isn't forgotten, same pattern as the T1.6
+deferral last phase).
+
+**Still open:** everything carried from the previous entry, unchanged
+(license confirmation, first job source pick, Ranking agent-vs-mode
+decision, Windows LaTeX docs, WAL mode, `discover_plugins()`, LLM batch
+mode) — none due yet. Added to that list: the `AgentRegistry`-level
+test noted above, due whenever `orchestration/registry.py` is built.
+
+**Not yet done:** commit/push for this phase — next action. Phase 3
+(Core AI / LLM Provider Layer) has not started.

@@ -13,6 +13,14 @@ repos:
         files: ^src/jobhunt_core/
         pass_filenames: false
         args: []
+        # The mypy mirror runs in its own isolated venv, so runtime deps
+        # used by type-checked modules must be declared here too
+        # (kept in sync with pyproject.toml's [project.dependencies] and
+        # the mypy dev extra, per rules.md's docs/code-must-not-drift rule).
+        additional_dependencies:
+          - pydantic>=2.7
+          - pydantic-settings>=2.4
+          - types-PyYAML>=6.0
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

@@ -1,0 +1,5 @@
+# Job source connector configuration (config.md §Source Configuration).
+# Additional sources are added per phases.md Phase 7 / roadmap.md.
+sources:
+  greenhouse: { enabled: true, rate_limit_per_min: 30 }
+  manual_import: { enabled: true }

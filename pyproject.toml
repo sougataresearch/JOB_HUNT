@@ -11,7 +11,12 @@ requires-python = ">=3.11"
 authors = [{ name = "sougataresearch" }]
 # License is proposed (MIT) but not yet finalized — decisions.md ADR-0009,
 # tasks.md T1.6. Applied here and as a LICENSE file in Phase 18.
-dependencies = []
+dependencies = [
+    # Phase 2 (config.md, design.md §8): layered Settings loading.
+    "pydantic>=2.7",
+    "pydantic-settings>=2.4",
+    "PyYAML>=6.0",
+]
 
 [project.urls]
 Repository = "https://github.com/sougataresearch/JOB_HUNT"
@@ -23,6 +28,7 @@ dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",
     "pre-commit>=3.7",
+    "types-PyYAML>=6.0",
 ]
 
 [tool.hatch.build.targets.wheel]

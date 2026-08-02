@@ -1,0 +1,23 @@
+# Provider settings and cost ceilings (config.md §Provider Settings,
+# §Rate Limits & Cost Ceilings). Committed defaults — no secrets here;
+# API keys live in .env (see .env.example).
+llm:
+  default_provider: anthropic
+  providers:
+    anthropic:
+      base_model: claude-sonnet-5
+      timeout_s: 60
+      max_retries: 3
+    openai:
+      base_model: gpt-5
+      timeout_s: 60
+      max_retries: 3
+    ollama:
+      base_model: llama3
+      timeout_s: 120
+      max_retries: 2
+  limits:
+    per_run_max_cost_usd: 2.00
+    per_day_max_cost_usd: 20.00
+    per_agent_max_calls_per_run:
+      job_matching: 200 # e.g., scoring a large batch

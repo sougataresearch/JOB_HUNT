@@ -1,10 +1,9 @@
 """The shared exception hierarchy every layer raises into (design.md §10).
 
-Phase-1 scope is deliberately limited to the base type. Subtypes
-(``ConfigError``, ``LLMProviderError``, ``SourceFetchError``,
-``RenderError``, ``StorageError``, ...) are added by the phase that
-first needs them (rules.md AI Coding Rule 2), each subclassing
-``JobHuntError`` defined here.
+Subtypes are added by the phase that first needs them (rules.md AI
+Coding Rule 2), each subclassing ``JobHuntError`` defined here.
+Remaining subtypes (``LLMProviderError``, ``SourceFetchError``,
+``RenderError``, ``StorageError``, ...) arrive in later phases.
 """
 
 from __future__ import annotations
@@ -34,3 +33,12 @@ class JobHuntError(Exception):
         if self.remedy:
             return f"{self.message} (remedy: {self.remedy})"
         return self.message
+
+
+class ConfigError(JobHuntError):
+    """Raised when configuration is missing, invalid, or inconsistent.
+
+    E.g. an enabled agent references a provider whose API key
+    environment variable is not set (config.md §Config Validation
+    Rules, phases.md Phase 2 acceptance criteria).
+    """

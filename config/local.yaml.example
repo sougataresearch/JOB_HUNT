@@ -1,0 +1,17 @@
+# Copy to config/local.yaml (gitignored — rules.md §Secrets Management)
+# for personal overrides. Only include the keys you actually want to
+# change: this file is deep-merged over the committed defaults in
+# llm.yaml / agents.yaml / sources.yaml (design.md §8, config.md).
+#
+# Example — disable an agent you haven't configured a provider for yet:
+#
+# agents:
+#   linkedin:
+#     enabled: false
+#
+# Example — prefer OpenAI for one agent without touching the shared default:
+#
+# agents:
+#   cover_letter:
+#     provider: openai
+#     model: gpt-5

@@ -78,19 +78,23 @@ llm:
       base_model: llama3
       timeout_s: 120
       max_retries: 2
+  limits:
+    per_run_max_cost_usd: 2.00
+    per_day_max_cost_usd: 20.00
+    per_agent_max_calls_per_run:
+      job_matching: 200        # e.g., scoring a large batch
 ```
 
 ## Rate Limits & Cost Ceilings
 
-```yaml
-limits:
-  per_run_max_cost_usd: 2.00
-  per_day_max_cost_usd: 20.00
-  per_agent_max_calls_per_run:
-    job_matching: 200        # e.g., scoring a large batch
-  job_source_rate_limit_per_min:
-    default: 30
-```
+`limits` (above) lives nested under `llm:` in `config/llm.yaml` — it's
+LLM-call/cost-related, not source-fetch-related, so it belongs beside
+the provider settings rather than in its own file (`tasks.md` T2.1
+only names `llm.yaml`/`agents.yaml`/`sources.yaml`, no separate
+`limits.yaml`). Job-source-specific rate limiting is *not* duplicated
+here — it's the per-source `rate_limit_per_min` field already in
+`config/sources.yaml` (§Source Configuration, below); a single global
+default would only conflict with those per-source values.
 
 An agent (or the orchestrator, on its behalf) that would exceed
 `per_run_max_cost_usd`/`per_day_max_cost_usd` stops and raises a
