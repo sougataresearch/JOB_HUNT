@@ -1,0 +1,63 @@
+"""Alembic upgrade/downgrade round-trip (phases.md Phase 4 acceptance criteria).
+
+Runs the real ``alembic`` commands against a scratch, gitignored temp
+directory (via ``JOBHUNT_DATA_DIR``, the same env var
+``migrations/env.py`` and ``Settings`` both honor) -- never against
+the developer's real ``data/jobhunt.db``.
+"""
+
+from pathlib import Path
+
+import pytest
+from alembic import command
+from alembic.config import Config
+from sqlalchemy import create_engine, inspect
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
+_EXPECTED_TABLES = {
+    "candidate_profiles",
+    "companies",
+    "job_postings",
+    "applications",
+    "application_events",
+    "ats_reports",
+    "match_scores",
+    "interviews",
+    "interview_questions",
+}
+
+
+@pytest.fixture
+def alembic_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Config:
+    """An Alembic Config pointed at this repo's migrations, writing to tmp_path."""
+    monkeypatch.setenv("JOBHUNT_DATA_DIR", str(tmp_path))
+    return Config(str(REPO_ROOT / "alembic.ini"))
+
+
+def _table_names(tmp_path: Path) -> set[str]:
+    engine = create_engine(f"sqlite:///{tmp_path / 'jobhunt.db'}")
+    try:
+        return set(inspect(engine).get_table_names())
+    finally:
+        engine.dispose()
+
+
+def test_upgrade_head_creates_every_table(alembic_config: Config, tmp_path: Path) -> None:
+    """alembic upgrade head creates every table declared in the models."""
+    command.upgrade(alembic_config, "head")
+
+    tables = _table_names(tmp_path)
+
+    assert _EXPECTED_TABLES <= tables
+    assert "alembic_version" in tables
+
+
+def test_downgrade_base_drops_every_table(alembic_config: Config, tmp_path: Path) -> None:
+    """alembic downgrade base removes every table the initial migration created."""
+    command.upgrade(alembic_config, "head")
+
+    command.downgrade(alembic_config, "base")
+
+    tables = _table_names(tmp_path)
+    assert not (_EXPECTED_TABLES & tables)

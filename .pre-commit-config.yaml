@@ -24,6 +24,8 @@ repos:
           - anthropic>=0.34
           - openai>=1.40
           - httpx>=0.27
+          - SQLAlchemy>=2.0
+          - alembic>=1.13
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

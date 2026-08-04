@@ -205,10 +205,17 @@ class RepositoryBundle(BaseModel):
     profiles: ProfileRepo
     jobs: JobRepo
     matches: MatchRepo
+    ats: ATSRepo
     applications: ApplicationRepo
     interviews: InterviewRepo
     model_config = ConfigDict(arbitrary_types_allowed=True)
 ```
+
+`RepositoryBundle` itself is assembled once `RunContext` is built
+(Phase 5+, when the first agent needs it) — not in Phase 4, which
+delivers the six repositories it will wire together (`ats` was missing
+from an earlier draft of this bundle; added to match `tasks.md` T4.4's
+six named aggregates and `database.md`'s `ats_reports` table).
 
 - Every repository wraps a single SQLAlchemy model (`database.md`); no
   agent imports SQLAlchemy directly — only repositories do

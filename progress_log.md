@@ -308,3 +308,85 @@ pricing to `config/llm.yaml` once verified figures are available.
 
 **Not yet done:** commit/push for this phase — next action. Phase 4
 (Storage & Schemas) has not started.
+
+---
+
+## 2026-08-02 — Phase 4 (Storage & Schemas) complete
+
+**Built, per `tasks.md` T4.1–T4.4:** Pydantic schemas for the 6 named
+aggregates (`schemas/{profile,job,match,ats,application,interview}.py`)
+plus their natural sub-entities (`Company`, `ApplicationEvent`,
+`InterviewQuestion`) — 9 SQLAlchemy tables total
+(`storage/models/`), an Alembic setup with the initial migration
+(`migrations/versions/0001_initial.py`), and 6 repositories
+(`storage/repositories/`). `storage/db.py` builds the SQLite engine.
+
+**Scope boundary, stated explicitly (not silently):** `database.md`
+documents 17 tables total; Phase 4 builds the 6 aggregates
+`tasks.md` T4.1 names plus their directly-owned sub-tables. Not built
+yet, deferred to the phase that needs them: `users` (multi-user work,
+unscheduled — `user_id` stays a plain nullable column with no FK, per
+`database.md` §1's own framing), `resume_versions`/`cover_letters`/
+`templates` (Phase 11/12), `prompt_versions`/`agent_runs` (once an
+agent actually runs, Phase 5+), `search_runs` (Phase 7), `notes`
+(unscheduled). `Application.resume_version_id`/`cover_letter_id` and
+`JobPosting.search_run_id` are likewise omitted until their target
+tables exist — each addition will be its own Alembic migration when
+the time comes, which is the normal, expected way this schema grows
+(`rules.md` §Refactoring Rules), not a shortcut.
+
+**Applied `final_review.md` §1.1 (SQLite WAL mode)** as committed to
+in the Phase 1 log: `storage/db.py`'s `create_sqlite_engine()` sets
+`PRAGMA journal_mode=WAL` and `PRAGMA busy_timeout=5000` on every
+connection. While there, also enabled `PRAGMA foreign_keys=ON` —
+SQLite doesn't enforce declared foreign keys by default, so without
+this the FK constraints in the models would have been documentation
+only, not real, failing `tasks.md` T4.2's "constraints match
+database.md exactly" checklist item in spirit if not in schema DDL.
+Verified with a real FK-violation test
+(`test_foreign_key_enforced_for_missing_job_posting`), not assumed.
+
+**Real bug mypy caught, fixed before commit:** `ApplicationRepo` and
+`InterviewRepo` each define a method named `list()` (required by the
+api.md §7 Storage API contract). Any *later* method in the same class
+returning a bare `list[...]` type — `list_events()`, `list_questions()`
+— had that annotation misresolved by mypy against the `list` *method*
+instead of the builtin type ("Function ... .list is not valid as a
+type"), because mypy resolves forward-reference annotations against
+the enclosing class scope, and the method name shadows the builtin
+within that scope for everything defined after it. Fixed by qualifying
+those two return types as `builtins.list[...]` (ruff's own suggested
+fix, confirmed it also satisfies mypy) instead of renaming the `list()`
+method, which would have broken the documented Repository contract.
+
+**Verified, not assumed:** `ruff check`, `ruff format --check`, `mypy`
+(strict, 44 source files), full `pytest` (67 passed, 94% coverage
+overall), `alembic upgrade head` / `alembic downgrade base` both run
+for real against a scratch temp DB (not just asserted) and correctly
+create/drop all 9 tables, and `pre-commit run --all-files` (added
+SQLAlchemy/alembic to the mypy hook's `additional_dependencies`, same
+isolated-venv pattern as Phases 2–3).
+
+**Doc reconciliation:** `api.md` §7's `RepositoryBundle` example was
+missing `ats: ATSRepo` (an oversight from when that doc was written,
+before ATS was confirmed as one of `tasks.md` T4.4's 6 named
+aggregates) — added, with a note that assembling the bundle itself is
+Phase 5+ work (needs `RunContext`, which doesn't exist until agents
+do).
+
+**Housekeeping:** a scratch `data_alembic_scratch/jobhunt.db` file
+(created while manually generating the initial migration with
+`alembic revision --autogenerate`) was caught in `git status` before
+commit and removed rather than staged — a reminder that manual
+one-off commands outside the test suite don't get pytest's automatic
+`tmp_path` cleanup.
+
+**Still open:** everything carried from prior entries (license
+confirmation, first job source pick, Ranking agent-vs-mode decision,
+Windows LaTeX docs, `discover_plugins()` for agents, LLM
+batch/concurrency mode, `AgentRegistry`-level test, Ollama live-server
+smoke test, real LLM pricing). WAL mode is now done, removed from the
+open list.
+
+**Not yet done:** commit/push for this phase — next action. Phase 5
+(CV Analysis / Resume Analysis Agent) has not started.
