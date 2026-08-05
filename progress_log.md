@@ -503,3 +503,112 @@ find anything, but not yet done).
 
 **Not yet done:** commit/push for this phase — next action. Phase 6
 (Skill Gap Analysis) has not started.
+
+## 2026-08-05 — Phase 6 (Skill Gap Analysis / Skill Gap Agent) complete
+
+**Built, per `tasks.md` T6.1:** `schemas/skill_gap.py`
+(`SkillGapPriority`, `SkillGap`, `SkillGapReport`); the prompt file
+`prompts/library/skill_gap/analyze/1.0.md`; the second real agent,
+`SkillGapAgent` (`agents/skill_gap_agent.py`), registered via the same
+explicit-import pattern in `agents/__init__.py`. Per
+`implementation_order.md` step 21 ("should reuse [Resume Analysis's]
+structure directly"), it follows the exact same shape: `SkillGapInput`
+→ `load_prompt`/`render_prompt` → `ctx.llm.complete_structured` →
+`AgentResult`. `SkillGapInput` accepts either a `target_role` string or
+a `list[JobPosting]` (agents.md §2's documented "target role text or
+list[JobPosting]" contract), validated at the model boundary so at
+least one must be given. Also built the golden-file eval harness
+`testing.md` §3 describes and Phase 5 explicitly deferred
+("`testing.md` §3's AI Evaluation golden-file approach remains
+aspirational... until [live credentials or a cassette harness]" —
+still true here, but the *harness* itself now exists): three fixture
+cases under `tests/eval/skill_gap/cases/*.yaml` (a clear-gap case, an
+`insufficient_data` sparse-profile case per agents.md §2 Failure
+handling, and a close-match minor-gap case), each pairing a realistic
+`CandidateProfile`/target-role fixture with a hand-curated golden
+report and structural `expected_properties`, run through
+`tests/eval/skill_gap/test_skill_gap_eval.py`.
+
+**Real, if small, duplication caught and fixed:** Resume Analysis's
+private `_default_model(ctx)` helper got copy-pasted verbatim into
+`SkillGapAgent` while following its structure — two identical private
+functions is exactly the "used twice already, not hypothetically"
+case rules.md's no-speculative-abstraction guidance doesn't rule out.
+Moved it to `agents/base.py` as `default_model_for(agent_name, ctx)`
+and updated both agents to call it, so a third/future agent has one
+place to use, not a third copy to drift from.
+
+**Real environment/tooling issue found and fixed, unrelated to this
+phase's own code:** running `ruff check` surfaced an import-order
+finding in `tests/cli/test_setup_command.py` (a Phase 5 file untouched
+this session) that Phase 5's own "verified, not assumed" ruff run had
+not flagged. Root cause: the local dev `.venv` has ruff 0.16.1
+installed, while `.pre-commit-config.yaml` pins the ruff hook at
+`v0.6.9` — the two versions disagree on how to classify `cli.commands.
+setup`'s import group, because `cli/` was never listed in `pyproject.
+toml`'s `[tool.ruff] src` (only `["src", "tests"]`), so isort-style
+first-party detection couldn't resolve it either way and different
+ruff versions guessed differently. Running `--fix` with the local
+0.16.1 and then with the pinned pre-commit hook produced two *different*
+"fixed" orderings for the same import block — a real oscillation, not
+a fluke. Fixed at the root cause: added `"."` (the repo root, so `cli`
+resolves as a first-party package alongside `src/jobhunt_core`) to
+`[tool.ruff] src`, which made both ruff versions converge on the same
+ordering, confirmed by re-running `ruff check --fix` with the local
+version and then `pre-commit run --all-files` with the pinned one back
+to back with no further changes from either.
+
+**Doc reconciliation:** `prompts.md` §8's draft system prompt didn't
+mention the `insufficient_data`/empty-`gaps` behavior agents.md §2's
+Failure handling section requires — the shipped prompt file adds it
+(matching how Phase 5's `extract_profile` prompt also extended its
+own draft). Updated `prompts.md` §8 with a note explaining the
+addition, same pattern as prior phases' doc reconciliations.
+
+**Honest limitation, carried forward and made concrete:** the new
+`tests/eval/skill_gap/` golden-file cases use `fake_llm_factory`
+scripted with hand-written "golden" `SkillGapReport`s, not a live model
+call or a recorded cassette. This proves the agent's assembly and the
+`expected_properties` grading logic are correct end-to-end against
+realistic fixtures — it does **not** prove a real LLM, given the
+actual shipped prompt, would produce gaps this well-grounded, or
+correctly recognize a sparse profile as `insufficient_data` rather
+than fabricating gaps. Same caveat as Phase 5's agent tests, now
+explicitly wired into the `testing.md` §3-shaped harness so that
+swapping in a recorded-cassette `LLMProvider` later upgrades these
+same cases to a true model-quality eval without rewriting the test
+file — still on the "still open" list below.
+
+**Verified, not assumed:** `ruff check` (0 errors, both ruff versions
+agreeing after the `src` fix above), `ruff format --check`, `mypy`
+--strict (61 source files, no issues), full `pytest` (124 passed, up
+from 114 — 95% coverage), `pre-commit run --all-files` (all 7 hooks
+green, no new `additional_dependencies` needed — no new runtime deps
+this phase).
+
+**Another stale-doc finding, older than this phase:** `memory.md`
+("Status: Current snapshot") still read "Architecture and
+documentation phase — no application code exists yet... Phase 1 has
+not started," dated 2026-08-02 — stale since before Phase 1 even
+began, and never corrected across Phases 1–5. Since `CLAUDE.md`
+explicitly names it as the file to check "before assuming what's done
+vs. pending," leaving it wrong actively misleads the next session.
+Updated its Current Status section and date.
+
+**No architecture.md change needed this phase:** unlike Phase 5,
+`SkillGapAgent` only needed `schemas/` (already a documented `agents/`
+dependency) and no new module — `architecture.md` §2's table was
+checked and found accurate as-is.
+
+**Still open:** everything carried from Phase 5 (license confirmation,
+first job source pick, Ranking agent-vs-mode decision, Windows LaTeX
+docs, Ollama live-server smoke test, real LLM pricing, native
+system-prompt support on `LLMProvider`, a quick audit of
+`populate_by_name=True`'s blast radius). The eval harness now exists
+but still needs a recorded-cassette or live-credential `LLMProvider`
+before its cases test real prompt quality rather than agent plumbing
+(see honest-limitation note above) — this applies to every future
+agent's eval suite too, not just Skill Gap's.
+
+**Not yet done:** commit/push for this phase — next action. Phase 7
+(Job Search) has not started.

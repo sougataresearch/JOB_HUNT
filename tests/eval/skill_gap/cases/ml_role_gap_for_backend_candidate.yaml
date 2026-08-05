@@ -1,0 +1,54 @@
+# Golden-file case (testing.md §3 AI Evaluation): a backend/infra
+# candidate compared against an ML-focused target role. Expects
+# several concrete, evidence-grounded gaps -- not generic advice.
+case_name: ml_role_gap_for_backend_candidate
+
+input:
+  candidate_profile:
+    full_name: "Jordan Lee"
+    skills: ["Python", "Go", "PostgreSQL", "Kubernetes", "AWS"]
+    experience:
+      - title: "Backend Engineer"
+        company: "Acme Corp"
+        start_date: "2020"
+        end_date: "2024"
+        bullets:
+          - "Built REST APIs serving 10M requests/day"
+          - "Managed CI/CD pipelines and Kubernetes deployments"
+  target_role: >
+    Machine Learning Engineer, focused on production ML systems using
+    PyTorch and TensorFlow, with strong statistics/model-evaluation
+    fundamentals.
+
+golden_response:
+  gaps:
+    - skill: "ML frameworks (PyTorch/TensorFlow)"
+      priority: high
+      rationale: >
+        The target role requires production ML systems built on PyTorch
+        or TensorFlow; the candidate's skills and experience are entirely
+        backend/infra-focused.
+      evidence: >
+        Not present in skills (Python, Go, PostgreSQL, Kubernetes, AWS)
+        or in either experience bullet.
+    - skill: "Statistics / model evaluation fundamentals"
+      priority: medium
+      rationale: >
+        The target role explicitly calls for statistics and
+        model-evaluation fundamentals, which the candidate's listed
+        experience does not demonstrate.
+      evidence: >
+        No mention of statistics, model evaluation, or ML metrics in
+        skills or experience bullets.
+  summary: >
+    Strong backend/infrastructure foundation (APIs, Kubernetes, CI/CD)
+    but no evidence of ML framework or modeling experience for this
+    target role.
+  insufficient_data: false
+
+expected_properties:
+  min_gaps: 1
+  max_gaps: 4
+  insufficient_data: false
+  gap_skills_include:
+    - "ML frameworks (PyTorch/TensorFlow)"

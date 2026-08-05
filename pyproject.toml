@@ -52,7 +52,7 @@ packages = ["src/jobhunt_core"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
-src = ["src", "tests"]
+src = ["src", "tests", "."]
 # Recent ruff versions format Python code fences embedded in Markdown by
 # default; the illustrative pseudocode in the root-level docs (api.md, etc.)
 # is intentionally not strict, runnable Python, so exclude it from linting.

@@ -87,3 +87,19 @@ class Agent(Protocol[InT, OutT]):
     def run(self, input: InT, ctx: RunContext) -> AgentResult[OutT]:
         """Run the agent on ``input`` using ``ctx``, returning a wrapped result."""
         ...
+
+
+def default_model_for(agent_name: str, ctx: RunContext) -> str:
+    """Resolve the model an agent should use absent its own explicit ``model`` config.
+
+    Shared by every agent's ``run()`` (first duplicated verbatim by
+    Resume Analysis and Skill Gap — moved here rather than left
+    copy-pasted a third time, since every future agent needs the same
+    fallback: its own ``AgentConfig.model`` if set, else the resolved
+    default provider's ``base_model``).
+    """
+    agent_cfg = ctx.settings.agents.get(agent_name)
+    if agent_cfg and agent_cfg.model:
+        return agent_cfg.model
+    provider_cfg = ctx.settings.llm.providers.get(ctx.settings.llm.default_provider)
+    return provider_cfg.base_model if provider_cfg else ctx.settings.llm.default_provider

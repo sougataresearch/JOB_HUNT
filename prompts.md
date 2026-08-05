@@ -279,7 +279,12 @@ output_schema: SkillGapReport
 aggregate posting set. Identify missing or weak skills, each with a
 priority and a rationale tied to specific evidence (or explicit
 absence of evidence) in the profile. Do not give generic career advice
-unconnected to the actual input.
+unconnected to the actual input. If the profile is too sparse to
+support a meaningful comparison (no skills and no experience listed),
+set `insufficient_data` to true, return an empty `gaps` list, and
+explain why in `summary` rather than guessing (Phase 6 addition,
+matching `agents.md` §2 Failure handling — not in the original draft
+above, reconciled here after implementation).
 
 **User Template:**
 ```

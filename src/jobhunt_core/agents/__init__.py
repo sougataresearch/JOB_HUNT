@@ -7,6 +7,9 @@ pattern used for LLM providers, SQLAlchemy models, and CV parsers
 list below, never left to be found by a filesystem walk.
 """
 
-from jobhunt_core.agents import resume_analysis_agent  # noqa: F401
+from jobhunt_core.agents import (
+    resume_analysis_agent,  # noqa: F401
+    skill_gap_agent,  # noqa: F401
+)
 
-__all__ = ["resume_analysis_agent"]
+__all__ = ["resume_analysis_agent", "skill_gap_agent"]

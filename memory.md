@@ -1,6 +1,6 @@
 # Project Memory — JOB_HUNT
 
-Status: Current snapshot · Last updated: 2026-08-02
+Status: Current snapshot · Last updated: 2026-08-05
 
 This is what an AI coding agent (or a new human contributor) should
 internalize before touching this repo. It's a snapshot, not a spec —
@@ -9,10 +9,15 @@ those win; update this file to match.
 
 ## Current Status
 
-**Architecture and documentation phase — no application code exists
-yet.** `phases.md` Phase 1 (Foundation) has not started. Do not write
-`jobhunt_core` source files without checking `progress_log.md` first
-for the latest open items.
+**Phases 1–6 complete** (Foundation, Configuration, Core AI/LLM
+Provider Layer, Storage & Schemas, CV Analysis/Resume Analysis Agent,
+Skill Gap Analysis/Skill Gap Agent). Two real agents exist and are
+registered: `resume_analysis` and `skill_gap`. Next up per
+`implementation_order.md`/`phases.md` is Phase 7 (Job Search — source
+connector interface, first two connectors, Job Search Agent + dedup).
+Do not write `jobhunt_core` source files without checking
+`progress_log.md` first for the latest open items — this section is a
+snapshot, not a substitute for it.
 
 ## Project Philosophy
 

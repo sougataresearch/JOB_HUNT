@@ -13,7 +13,7 @@ from typing import ClassVar
 
 from pydantic import BaseModel
 
-from jobhunt_core.agents.base import AgentResult, RunContext
+from jobhunt_core.agents.base import AgentResult, RunContext, default_model_for
 from jobhunt_core.documents.parsers import parser_for_file
 from jobhunt_core.orchestration.registry import register_agent
 from jobhunt_core.prompts.loader import load_prompt, render_prompt
@@ -58,8 +58,7 @@ class ResumeAnalysisAgent:
         parser = parser_for_file(input.cv_file_path)
         parsed = parser.parse(input.cv_file_path)
 
-        agent_cfg = ctx.settings.agents.get(self.name)
-        model = (agent_cfg.model if agent_cfg else None) or _default_model(ctx)
+        model = default_model_for(self.name, ctx)
 
         template = load_prompt(_PROMPT_DOMAIN, _PROMPT_NAME)
         prompt = render_prompt(template, cv_raw_text=parsed.raw_text)
@@ -82,8 +81,3 @@ class ResumeAnalysisAgent:
             cost_estimate_usd=response.cost_estimate_usd,
             latency_ms=latency_ms,
         )
-
-
-def _default_model(ctx: RunContext) -> str:
-    provider_cfg = ctx.settings.llm.providers.get(ctx.settings.llm.default_provider)
-    return provider_cfg.base_model if provider_cfg else ctx.settings.llm.default_provider

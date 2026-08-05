@@ -1,0 +1,42 @@
+# Golden-file case: a candidate who is a strong match for the target
+# role should surface only minor, low-priority gaps -- not padded with
+# invented major ones just to fill out a report.
+case_name: close_match_minor_gap
+
+input:
+  candidate_profile:
+    full_name: "Sam Rivera"
+    skills: ["Python", "Django", "PostgreSQL", "Docker", "AWS", "REST APIs"]
+    experience:
+      - title: "Backend Engineer"
+        company: "Widget Inc"
+        start_date: "2019"
+        end_date: "2024"
+        bullets:
+          - "Designed and shipped a Django/PostgreSQL billing service"
+          - "Owned Docker-based deployment to AWS ECS"
+  target_role: >
+    Backend Engineer, Python/Django, PostgreSQL, containerized
+    deployments on AWS. GraphQL experience is a plus.
+
+golden_response:
+  gaps:
+    - skill: "GraphQL"
+      priority: low
+      rationale: >
+        Listed as "a plus" in the target role, not a core requirement;
+        the candidate's experience is entirely REST-based.
+      evidence: >
+        Skills list REST APIs but no GraphQL, and no experience bullet
+        mentions GraphQL.
+  summary: >
+    Strong match on the core stack (Python, Django, PostgreSQL, Docker,
+    AWS); only a minor, non-essential GraphQL gap.
+  insufficient_data: false
+
+expected_properties:
+  min_gaps: 1
+  max_gaps: 2
+  insufficient_data: false
+  gap_skills_include:
+    - "GraphQL"

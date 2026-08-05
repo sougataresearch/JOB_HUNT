@@ -1,0 +1,22 @@
+# Golden-file case: agents.md §2 Failure handling -- a profile with no
+# skills and no experience must produce insufficient_data=true and an
+# empty gap list, never fabricated gaps.
+case_name: sparse_profile_insufficient_data
+
+input:
+  candidate_profile:
+    full_name: "A. Candidate"
+  target_role: "Senior Backend Engineer"
+
+golden_response:
+  gaps: []
+  summary: >
+    The provided profile lists only a name -- no skills, experience, or
+    education to compare against the target role. Insufficient data to
+    identify meaningful gaps without guessing.
+  insufficient_data: true
+
+expected_properties:
+  min_gaps: 0
+  max_gaps: 0
+  insufficient_data: true
