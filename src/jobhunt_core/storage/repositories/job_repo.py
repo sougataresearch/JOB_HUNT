@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
+from jobhunt_core.errors import StorageError
 from jobhunt_core.schemas.job import Company, JobPosting
 from jobhunt_core.storage.models.job import CompanyModel, JobPostingModel
 
@@ -49,7 +50,7 @@ class JobRepo:
         if posting.id is not None:
             row = self._session.get(JobPostingModel, posting.id)
             if row is None:
-                raise ValueError(f"JobPosting {posting.id} not found")
+                raise StorageError(f"JobPosting {posting.id} not found")
             for key, value in data.items():
                 setattr(row, key, value)
         else:

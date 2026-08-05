@@ -23,6 +23,11 @@ dependencies = [
     # Phase 4 (database.md, decisions.md ADR-0002): storage layer.
     "SQLAlchemy>=2.0",
     "alembic>=1.13",
+    # Phase 5 (tasks.md T5.1-T5.3): CV parsing, prompt rendering, CLI.
+    "pdfplumber>=0.11",
+    "python-docx>=1.1",
+    "Jinja2>=3.1",
+    "typer>=0.12",
 ]
 
 [project.urls]
@@ -36,6 +41,9 @@ dev = [
     "pytest-cov>=5.0",
     "pre-commit>=3.7",
     "types-PyYAML>=6.0",
+    # Fixture generation only (tests/fixtures/cvs/_generate.py) -- not used at
+    # runtime or imported by the test suite itself.
+    "reportlab>=4.2",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -72,8 +80,14 @@ quote-style = "double"
 python_version = "3.11"
 strict = true
 mypy_path = "src"
-files = ["src/jobhunt_core"]
+# cli/ added in Phase 5 (tasks.md T5.3) alongside src/jobhunt_core -- it
+# has real logic (run_setup et al.) worth checking, not just a thin script.
+files = ["src/jobhunt_core", "cli"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--cov=jobhunt_core --cov-report=term-missing"
+# cli/ is a top-level, non-installed package (run via `python -m cli.main`
+# from the repo root, decisions.md ADR-0004) -- add the repo root to
+# sys.path for collection so tests/cli/ can import it the same way.
+pythonpath = ["."]

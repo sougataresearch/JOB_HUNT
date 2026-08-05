@@ -41,16 +41,23 @@ Code.
 
 ```
 jobhunt_core/
-├── agents/          → depends on: llm/, prompts/, storage/, schemas/
+├── agents/          → depends on: llm/, prompts/, storage/, schemas/, documents/
 ├── llm/             → depends on: config/  (no dependency on agents/)
 ├── storage/         → depends on: schemas/ (no dependency on agents/ or llm/)
-├── documents/       → depends on: schemas/, storage/ (LaTeX/Markdown rendering)
+├── documents/       → depends on: schemas/, storage/ (LaTeX/Markdown rendering; CV parsers)
 ├── sources/         → depends on: schemas/, config/ (job board connectors)
 ├── prompts/         → depends on: nothing (pure templates + loader)
 ├── schemas/         → depends on: nothing (Pydantic models — the shared vocabulary)
-├── orchestration/   → depends on: agents/, schemas/, storage/
+├── orchestration/   → depends on: agents/, schemas/, storage/, config/, llm/
 └── config/          → depends on: nothing
 ```
+
+(`agents/` gained `documents/` once the Resume Analysis Agent needed
+`documents/parsers/` for CV ingestion, and `orchestration/` gained
+`config/`/`llm/` once it needed to wire a `Settings`-selected
+`LLMProvider` into a `RunContext` — both were omissions in the
+original draft of this table, caught while implementing Phase 5;
+see `progress_log.md`.)
 
 Rule of thumb enforced by `rules.md`: **dependencies point inward toward
 `schemas/` and `config/`; nothing outside `agents/` imports from

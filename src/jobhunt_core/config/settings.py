@@ -149,7 +149,14 @@ class Settings(BaseSettings):
     log_llm_bodies: bool = Field(default=False, validation_alias="JOBHUNT_LOG_LLM_BODIES")
     env: str = Field(default="dev", validation_alias="JOBHUNT_ENV")
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    # populate_by_name=True: without it, fields with a validation_alias
+    # (anthropic_api_key, data_dir, etc.) can *only* be set by their env-var
+    # alias, even when constructing Settings(...) directly with the plain
+    # attribute name -- the kwarg is silently dropped (extra="ignore") and
+    # the field default is used instead. Found via a Phase 5 test that
+    # constructed Settings(data_dir=tmp_path, ...) directly and got the
+    # default "data" back with no error (tests/cli/test_setup_command.py).
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", populate_by_name=True)
 
     def enabled_agent_names(self) -> list[str]:
         """Return the sorted names of agents with ``enabled: true``.

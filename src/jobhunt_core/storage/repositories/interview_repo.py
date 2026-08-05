@@ -6,6 +6,7 @@ import builtins  # see list_questions() docstring below
 
 from sqlalchemy.orm import Session
 
+from jobhunt_core.errors import StorageError
 from jobhunt_core.schemas.interview import Interview, InterviewQuestion
 from jobhunt_core.storage.models.interview import InterviewModel, InterviewQuestionModel
 
@@ -37,7 +38,7 @@ class InterviewRepo:
         if interview.id is not None:
             row = self._session.get(InterviewModel, interview.id)
             if row is None:
-                raise ValueError(f"Interview {interview.id} not found")
+                raise StorageError(f"Interview {interview.id} not found")
             for key, value in data.items():
                 setattr(row, key, value)
         else:

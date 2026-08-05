@@ -10,7 +10,7 @@ repos:
     rev: v1.11.2
     hooks:
       - id: mypy
-        files: ^src/jobhunt_core/
+        files: ^(src/jobhunt_core|cli)/
         pass_filenames: false
         args: []
         # The mypy mirror runs in its own isolated venv, so runtime deps
@@ -26,6 +26,10 @@ repos:
           - httpx>=0.27
           - SQLAlchemy>=2.0
           - alembic>=1.13
+          - pdfplumber>=0.11
+          - python-docx>=1.1
+          - Jinja2>=3.1
+          - typer>=0.12
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0

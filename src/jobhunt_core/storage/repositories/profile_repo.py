@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
+from jobhunt_core.errors import StorageError
 from jobhunt_core.schemas.profile import CandidateProfile, EducationEntry, ExperienceEntry
 from jobhunt_core.storage.models.profile import CandidateProfileModel
 
@@ -56,7 +57,7 @@ class ProfileRepo:
         if profile.id is not None:
             row = self._session.get(CandidateProfileModel, profile.id)
             if row is None:
-                raise ValueError(f"CandidateProfile {profile.id} not found")
+                raise StorageError(f"CandidateProfile {profile.id} not found")
             for key, value in data.items():
                 setattr(row, key, value)
         else:

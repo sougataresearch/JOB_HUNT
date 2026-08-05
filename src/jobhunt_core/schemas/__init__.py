@@ -11,6 +11,7 @@ from jobhunt_core.schemas.application import (
     ApplicationStatus,
 )
 from jobhunt_core.schemas.ats import ATSReport
+from jobhunt_core.schemas.document import ParsedDocument
 from jobhunt_core.schemas.interview import (
     Interview,
     InterviewQuestion,
@@ -19,7 +20,12 @@ from jobhunt_core.schemas.interview import (
 )
 from jobhunt_core.schemas.job import Company, JobPosting, RemoteType
 from jobhunt_core.schemas.match import MatchScore
-from jobhunt_core.schemas.profile import CandidateProfile, EducationEntry, ExperienceEntry
+from jobhunt_core.schemas.profile import (
+    CandidateProfile,
+    CandidateProfileExtraction,
+    EducationEntry,
+    ExperienceEntry,
+)
 
 __all__ = [
     "ATSReport",
@@ -28,6 +34,7 @@ __all__ = [
     "ApplicationEventSource",
     "ApplicationStatus",
     "CandidateProfile",
+    "CandidateProfileExtraction",
     "Company",
     "EducationEntry",
     "ExperienceEntry",
@@ -36,6 +43,7 @@ __all__ = [
     "InterviewType",
     "JobPosting",
     "MatchScore",
+    "ParsedDocument",
     "QuestionCategory",
     "RemoteType",
 ]

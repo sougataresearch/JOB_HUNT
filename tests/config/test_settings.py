@@ -10,7 +10,7 @@ import pytest
 import yaml
 from pytest import MonkeyPatch
 
-from jobhunt_core.config.settings import load_settings
+from jobhunt_core.config.settings import LLMConfig, Settings, load_settings
 from jobhunt_core.errors import ConfigError
 
 _LLM_YAML = {
@@ -136,3 +136,29 @@ def test_enabled_agent_names_is_sorted_and_excludes_disabled(config_dir: Path) -
     settings = load_settings(config_dir=config_dir, env_file=None)
 
     assert settings.enabled_agent_names() == ["resume_analysis"]
+
+
+def test_aliased_fields_settable_by_plain_attribute_name(
+    tmp_path: Path, monkeypatch: MonkeyPatch
+) -> None:
+    """Settings(data_dir=...) works when constructed directly, not just via env vars.
+
+    Regression test: fields with a validation_alias (data_dir,
+    anthropic_api_key, etc.) were previously only settable through
+    their env-var alias -- constructing Settings(data_dir=tmp_path)
+    directly silently dropped the kwarg (extra="ignore") and fell back
+    to the field default, with no error. Caught by a Phase 5 test that
+    constructed Settings directly for dependency injection
+    (tests/cli/test_setup_command.py); fixed by adding
+    populate_by_name=True to Settings.model_config.
+    """
+    monkeypatch.delenv("JOBHUNT_DATA_DIR", raising=False)
+
+    settings = Settings(
+        llm=LLMConfig(default_provider="anthropic", providers={}),
+        agents={},
+        sources={},
+        data_dir=tmp_path,
+    )
+
+    assert settings.data_dir == tmp_path

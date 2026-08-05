@@ -2,8 +2,8 @@
 
 Subtypes are added by the phase that first needs them (rules.md AI
 Coding Rule 2), each subclassing ``JobHuntError`` defined here.
-Remaining subtypes (``SourceFetchError``, ``RenderError``,
-``StorageError``, ...) arrive in later phases.
+Remaining subtypes (``SourceFetchError``, ``RenderError``, ...) arrive
+in later phases.
 """
 
 from __future__ import annotations
@@ -53,4 +53,16 @@ class LLMProviderError(JobHuntError):
     provider returning output that does not satisfy a requested
     structured-output schema (rules.md AI Coding Rule 1 territory —
     never silently invent a parsed result).
+    """
+
+
+class UnsupportedFormatError(JobHuntError):
+    """Raised when no registered CV parser supports a given file (api.md §1)."""
+
+
+class StorageError(JobHuntError):
+    """Raised for storage-layer failures a repository cannot recover from.
+
+    E.g. saving/updating a row by id that does not exist (design.md
+    §10's typed exception hierarchy).
     """

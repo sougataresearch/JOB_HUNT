@@ -6,7 +6,7 @@ import builtins  # see list_events() docstring below
 
 from sqlalchemy.orm import Session
 
-from jobhunt_core.errors import JobHuntError
+from jobhunt_core.errors import StorageError
 from jobhunt_core.schemas.application import (
     Application,
     ApplicationEvent,
@@ -85,11 +85,11 @@ class ApplicationRepo:
             The updated ``Application``.
 
         Raises:
-            JobHuntError: No application exists with ``application_id``.
+            StorageError: No application exists with ``application_id``.
         """
         row = self._session.get(ApplicationModel, application_id)
         if row is None:
-            raise JobHuntError(f"Application {application_id} not found")
+            raise StorageError(f"Application {application_id} not found")
         from_status = ApplicationStatus(row.status)
         row.status = to_status.value
         self._session.flush()

@@ -57,3 +57,25 @@ class CandidateProfile(BaseModel):
     is_active: bool = True
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+
+class CandidateProfileExtraction(BaseModel):
+    """What the Resume Analysis Agent's LLM call actually extracts.
+
+    A narrower view of ``CandidateProfile`` excluding bookkeeping
+    fields the model has no basis to fill in (``id``, ``user_id``,
+    ``is_active``, ``created_at``, ``updated_at``,
+    ``source_file_path``) -- those are set by the agent/repository,
+    never requested from the LLM (agents.md §1).
+    """
+
+    full_name: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    location: str | None = None
+    summary: str | None = None
+    skills: list[str] = Field(default_factory=list)
+    experience: list[ExperienceEntry] = Field(default_factory=list)
+    education: list[EducationEntry] = Field(default_factory=list)
+    certifications: list[str] = Field(default_factory=list)
+    raw_extraction_confidence: dict[str, float] | None = None

@@ -8,8 +8,12 @@ Status: Draft v1.0 · Last updated: 2026-08-02
   and is loaded via the Prompt API (`api.md` §4) — never inlined in
   Python (`rules.md` §Prompt Engineering Standards).
 - Each file has YAML frontmatter (`name`, `version`, `output_schema`)
-  followed by a `## System` section and a `## User Template` section
-  (Jinja2 syntax for variable interpolation).
+  delimited by `---` lines, followed by a `## System` section and a
+  `## User Template` section (Jinja2 syntax for variable
+  interpolation) — this is the exact on-disk format `prompts/loader.py`
+  parses. The worked examples below (bold **System:**/**User
+  Template:** headers) show prompt *content* for readers of this doc;
+  the real files use the `## `-header format, unchanged in substance.
 - **Guardrail block** (see below) is mandatory in every prompt that
   ingests job-posting text or any other externally-sourced content.
 - Versions are never edited in place once used in a logged run
