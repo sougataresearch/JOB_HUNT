@@ -139,6 +139,8 @@ class ApplicationRepo:
             id=row.id,
             user_id=row.user_id,
             job_posting_id=row.job_posting_id,
+            resume_version_id=row.resume_version_id,
+            cover_letter_id=row.cover_letter_id,
             status=ApplicationStatus(row.status),
             submitted_at=row.submitted_at,
             source_channel=row.source_channel,

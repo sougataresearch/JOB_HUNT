@@ -34,15 +34,18 @@ class Application(BaseModel):
 
     ``status`` is mutable current state; every transition is also
     recorded as an ``ApplicationEvent`` (design.md §3 -- soft state,
-    hard history). Not yet included here (added when their owning
-    phase lands, per progress_log.md): ``resume_version_id``,
-    ``cover_letter_id`` (Phase 11/12, need ``resume_versions``/
-    ``cover_letters``).
+    hard history). ``resume_version_id``/``cover_letter_id`` were
+    deferred until their owning tables existed (Phase 11/12); added
+    here in Phase 14, now that both do. No field for an email
+    reference -- database.md §9 defines no such column, and
+    ``EmailDraft`` (agents.md §8) is never persisted independently.
     """
 
     id: str | None = None
     user_id: str | None = None
     job_posting_id: str
+    resume_version_id: str | None = None
+    cover_letter_id: str | None = None
     status: ApplicationStatus = ApplicationStatus.DRAFTED
     submitted_at: datetime | None = None
     source_channel: str | None = None

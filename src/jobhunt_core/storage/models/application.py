@@ -13,9 +13,9 @@ from jobhunt_core.storage.models.base import Base, TimestampMixin, UUIDPKMixin, 
 class ApplicationModel(UUIDPKMixin, TimestampMixin, Base):
     """The ``applications`` table -- one application per posting.
 
-    Not yet columns here (added when their owning phase lands, per
-    progress_log.md): ``resume_version_id``, ``cover_letter_id``
-    (Phase 11/12).
+    ``resume_version_id``/``cover_letter_id`` added in Phase 14 (added
+    via a batch-mode migration, same as ``job_postings.search_run_id``
+    in Phase 7 -- SQLite can't ``ALTER TABLE ADD CONSTRAINT`` directly).
     """
 
     __tablename__ = "applications"
@@ -23,6 +23,12 @@ class ApplicationModel(UUIDPKMixin, TimestampMixin, Base):
 
     user_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     job_posting_id: Mapped[str] = mapped_column(String(36), ForeignKey("job_postings.id"))
+    resume_version_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("resume_versions.id"), nullable=True
+    )
+    cover_letter_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("cover_letters.id"), nullable=True
+    )
     status: Mapped[str] = mapped_column(String(32), default="drafted")
     submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     source_channel: Mapped[str | None] = mapped_column(String(32), nullable=True)

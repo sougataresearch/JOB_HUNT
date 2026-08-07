@@ -134,3 +134,19 @@ def test_0004_adds_cover_letters(alembic_config: Config, tmp_path: Path) -> None
         engine.dispose()
 
     assert cover_letter_fks == {"applications", "job_postings", "resume_versions", "templates"}
+
+
+def test_0005_adds_application_document_links(alembic_config: Config, tmp_path: Path) -> None:
+    """Phase 14's migration adds applications.resume_version_id/cover_letter_id as working FKs."""
+    command.upgrade(alembic_config, "head")
+
+    engine = create_engine(f"sqlite:///{tmp_path / 'jobhunt.db'}")
+    try:
+        inspector = inspect(engine)
+        columns = {col["name"] for col in inspector.get_columns("applications")}
+        fks = {fk["referred_table"] for fk in inspector.get_foreign_keys("applications")}
+    finally:
+        engine.dispose()
+
+    assert {"resume_version_id", "cover_letter_id"} <= columns
+    assert {"resume_versions", "cover_letters"} <= fks

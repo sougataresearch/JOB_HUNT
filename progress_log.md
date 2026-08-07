@@ -1295,3 +1295,87 @@ documentation deferred to Phase 18).
 
 **Not yet done:** commit/push for this phase — next action. Phase 14
 (Application Tracking) has not started.
+
+## 2026-08-08 — Phase 14 (Application Tracking Agent) complete
+
+**Storage was already half-built:** `Application`/`ApplicationEvent`
+schemas, `ApplicationModel`/`ApplicationEventModel`, and a fully
+working `ApplicationRepo` (create/change_status/add_event/idempotent
+re-create) all shipped in Phase 4, ahead of the agent that uses them —
+exactly as `phases.md` Phase 14's own dependency note anticipated
+("can be built/tested with synthetic data before \[11-13\] land").
+This phase's real net-new work was the agent itself, closing the
+`resume_version_id`/`cover_letter_id` deferral, and the `/outcome`
+command.
+
+**Built, per `tasks.md` T14.1–T14.3:**
+- `schemas/application.py`'s `Application` gained `resume_version_id`/
+  `cover_letter_id` (nullable) -- deferred since Phase 4 pending
+  `resume_versions`/`cover_letters` existing (Phase 11/12); no email
+  field, since database.md §9 defines no such column and `EmailDraft`
+  is never persisted independently (agents.md §8).
+  `storage/models/application.py` gained matching FK columns; Alembic
+  `0005` adds them via `batch_alter_table` (same SQLite ADD-CONSTRAINT
+  workaround as Phase 7's `job_postings.search_run_id`).
+- `agents/application_tracking_agent.py`: `ApplicationTrackingAgent`,
+  fully deterministic (agents.md §9: "Prompt template: None"),
+  `prompt_version`/`model` always `"n/a"` (same convention
+  `ATSOptimizationAgent` uses for its own no-LLM paths). One `run()`
+  handles both modes agents.md §9 describes ("approved package" vs.
+  "status-update command") via the same idempotent create-or-transition
+  logic, delegating the actual invariants (never overwrite history,
+  idempotent duplicate-create) to `ApplicationRepo`, which already
+  enforced them. `export_applications_csv()` -- a raw per-application
+  dump, not pre-aggregated; computing rates is Career Analytics
+  Agent's job (agents.md §11), not this one's.
+- `cli/commands/outcome.py` + `.claude/commands/outcome.md` +
+  `cli/main.py` wiring (`jobhunt outcome <job_posting_id> <status>`).
+
+**A real bug caught by the repo's own round-trip test, not assumed
+away:** `ApplicationRepo._to_schema()` was never updated when
+`resume_version_id`/`cover_letter_id` were added to the model --
+writes correctly persisted both columns, but every read silently
+dropped them back to `None`. Caught by
+`test_round_trip_persists_document_references` (extended in this
+phase, using real `ResumeVersion`/`CoverLetter` rows since SQLite FK
+enforcement is on -- `storage/db.py`'s own `PRAGMA foreign_keys=ON`
+note), not a fixture that happened to avoid the field. Fixed by adding
+the two fields to `_to_schema()`'s mapping.
+
+**A real, scoped engineering decision, not silently inherited
+default behavior:** `cli/commands/outcome.py` does not use
+`build_run_context()` (every other CLI command's convention) because
+that helper always constructs a real `LLMProvider`, requiring an API
+key, even for this agent, which agents.md §9 states plainly never
+calls one. Built a small `_build_tracking_context()` instead, with a
+placeholder `LLMProvider` that raises if ever actually called (proven
+by every test in this phase never needing an LLM fake). Avoids a real
+footgun: a user recording a status change shouldn't need a configured
+API key to do it.
+
+**A known limitation now duplicated, not newly introduced:**
+`run_outcome()` follows `run_setup()`/`run_rank()`'s own
+session/engine-construction pattern verbatim, so it inherits their
+already-logged missing `engine.dispose()` in the `finally` block (a
+`ResourceWarning`, not a real leak) -- extending an existing carried-
+forward item, not a new one.
+
+**Verified, not assumed:** `ruff check`, `ruff format --check`, `mypy
+--strict` (79 source files, `cli/` included), full `pytest` (271
+passed, up from 256 -- 97% coverage, up from 96%).
+`pre-commit run --all-files` hit the familiar ruff-version-drift
+oscillation (local 0.16.1 vs. pinned v0.6.9) on 3 files on the first
+run; stable on the second, same resolution as every prior occurrence
+(trust the pinned hook).
+
+**Still open:** everything carried from Phase 13 (license confirmation,
+Ollama live-server smoke test, real LLM pricing, native system-prompt
+support on `LLMProvider`, `populate_by_name=True` audit, the
+recorded-cassette eval harness, Greenhouse rate-limit enforcement,
+optional LLM-assisted manual-paste normalization, `agent_runs`/
+`prompt_versions` unbuilt, Windows LaTeX setup documentation deferred
+to Phase 18) plus `run_outcome()`'s `engine.dispose()` gap (joining
+`run_setup()`/`run_rank()`'s existing one).
+
+**Not yet done:** commit/push for this phase — next action. Phase 15
+(Interview Preparation) has not started.

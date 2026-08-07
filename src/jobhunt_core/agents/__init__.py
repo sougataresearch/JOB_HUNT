@@ -8,6 +8,7 @@ list below, never left to be found by a filesystem walk.
 """
 
 from jobhunt_core.agents import (
+    application_tracking_agent,  # noqa: F401
     ats_optimization_agent,  # noqa: F401
     cover_letter_agent,  # noqa: F401
     email_generation_agent,  # noqa: F401
@@ -19,6 +20,7 @@ from jobhunt_core.agents import (
 )
 
 __all__ = [
+    "application_tracking_agent",
     "ats_optimization_agent",
     "cover_letter_agent",
     "email_generation_agent",

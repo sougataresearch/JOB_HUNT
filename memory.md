@@ -1,6 +1,6 @@
 # Project Memory — JOB_HUNT
 
-Status: Current snapshot · Last updated: 2026-08-08 (Phase 13)
+Status: Current snapshot · Last updated: 2026-08-08 (Phase 14)
 
 This is what an AI coding agent (or a new human contributor) should
 internalize before touching this repo. It's a snapshot, not a spec —
@@ -9,17 +9,20 @@ those win; update this file to match.
 
 ## Current Status
 
-**Phases 1–13 complete** (Foundation, Configuration, Core AI/LLM
+**Phases 1–14 complete** (Foundation, Configuration, Core AI/LLM
 Provider Layer, Storage & Schemas, CV Analysis/Resume Analysis Agent,
 Skill Gap Analysis/Skill Gap Agent, Job Search/Job Search Agent +
 source connectors, Job Matching/Job Matching Agent, Ranking, ATS
 Optimization/ATS Optimization Agent, Resume Customization Agent +
-LaTeX Rendering, Cover Letter Agent, Email Generation Agent). Eight
-real agents exist and are registered: `resume_analysis`, `skill_gap`,
-`job_search`, `job_matching`, `ats_optimization`,
-`resume_customization`, `cover_letter`, `email_generation`. Ranking
+LaTeX Rendering, Cover Letter Agent, Email Generation Agent,
+Application Tracking Agent). Nine real agents exist and are
+registered: `resume_analysis`, `skill_gap`, `job_search`,
+`job_matching`, `ats_optimization`, `resume_customization`,
+`cover_letter`, `email_generation`, `application_tracking`. Ranking
 (`orchestration/ranking.py`) is a plain deterministic function, not an
-agent (api.md §3, confirmed during Phase 9). Two source connectors
+agent (api.md §3, confirmed during Phase 9); Application Tracking is a
+real registered agent but also has no LLM call (agents.md §9 --
+`prompt_version`/`model` are always `"n/a"`). Two source connectors
 exist: `greenhouse` (public Job Board API) and `manual_import` (ToS
 fallback). ATS Optimization uses a deterministic keyword-extraction
 step (no LLM) before an LLM judgment step classifies gaps as
@@ -37,13 +40,21 @@ Generation Agent is a single LLM call with no reviewer pass (agents.md
 nothing of its own. `RepositoryBundle` has 7 repos (added `documents:
 DocumentRepo` in Phase 11); `DocumentRepo` also owns `cover_letters`
 CRUD (Phase 12 reused it rather than adding an 8th `RepositoryBundle`
-field). Next up per `implementation_order.md`/`phases.md` is Phase 14
-(Application Tracking — Application Tracking Agent), which is also
-where `Application.resume_version_id`/`cover_letter_id` finally get
-added (deferred since Phase 11/12 for lack of a consumer until now).
-Do not write `jobhunt_core` source files without checking
-`progress_log.md` first for the latest open items — this section is a
-snapshot, not a substitute for it.
+field). `Application.resume_version_id`/`cover_letter_id` were added
+in Phase 14 (deferred since Phase 4/11/12); `ApplicationRepo` (built
+in Phase 4, ahead of the agent that uses it) is the system of record
+every tracking-adjacent agent reads from. CLI commands so far: `setup`,
+`rank`, `outcome` (`cli/main.py`); `outcome` deliberately builds its
+own `RunContext` rather than using `build_run_context()`, since that
+helper always needs a real `LLMProvider`/API key even for this
+LLM-free agent. Next up per `implementation_order.md`/`phases.md` is
+Phase 15 (Interview Preparation — Interview Prep Agent), triggered
+conceptually by `Application.status == "interview_scheduled"`
+(agents.md §10), consuming `InterviewRepo`/`Interview`/
+`InterviewQuestion` (also already built in Phase 4). Do not write
+`jobhunt_core` source files without checking `progress_log.md` first
+for the latest open items — this section is a snapshot, not a
+substitute for it.
 
 ## Project Philosophy
 
