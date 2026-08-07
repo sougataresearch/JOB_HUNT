@@ -1,6 +1,6 @@
 # Project Memory — JOB_HUNT
 
-Status: Current snapshot · Last updated: 2026-08-08 (Phase 12)
+Status: Current snapshot · Last updated: 2026-08-08 (Phase 13)
 
 This is what an AI coding agent (or a new human contributor) should
 internalize before touching this repo. It's a snapshot, not a spec —
@@ -9,35 +9,41 @@ those win; update this file to match.
 
 ## Current Status
 
-**Phases 1–12 complete** (Foundation, Configuration, Core AI/LLM
+**Phases 1–13 complete** (Foundation, Configuration, Core AI/LLM
 Provider Layer, Storage & Schemas, CV Analysis/Resume Analysis Agent,
 Skill Gap Analysis/Skill Gap Agent, Job Search/Job Search Agent +
 source connectors, Job Matching/Job Matching Agent, Ranking, ATS
 Optimization/ATS Optimization Agent, Resume Customization Agent +
-LaTeX Rendering, Cover Letter Agent). Seven real agents exist and are
-registered: `resume_analysis`, `skill_gap`, `job_search`,
-`job_matching`, `ats_optimization`, `resume_customization`,
-`cover_letter`. Ranking (`orchestration/ranking.py`) is a plain
-deterministic function, not an agent (api.md §3, confirmed during
-Phase 9). Two source connectors exist: `greenhouse` (public Job Board
-API) and `manual_import` (ToS fallback). ATS Optimization uses a
-deterministic keyword-extraction step (no LLM) before an LLM judgment
-step classifies gaps as supported/unsupported (agents.md §5). Resume
-Customization and Cover Letter both render real, compiling LaTeX PDFs
-via `DocumentRenderer`/`LaTeXRenderer` (`documents/renderer.py`) —
-this dev machine has a working MiKTeX install (lualatex/xelatex/
-pdflatex/pdftotext all confirmed working) — each with its own
-drafter→reviewer loop (`agents.md` §6, §7) that never lets the LLM
-touch contact info; Cover Letter Agent additionally reads
-`ResumeVersion.ats_extracted_text_path` directly to ground its
-reviewer's contradiction check in the tailored resume's actual text.
-`RepositoryBundle` has 7 repos (added `documents: DocumentRepo` in
-Phase 11); `DocumentRepo` now also owns `cover_letters` CRUD (Phase 12
-reused it rather than adding an 8th `RepositoryBundle` field). Next up
-per `implementation_order.md`/`phases.md` is Phase 13 (Email
-Automation — Email Generation Agent). Do not write `jobhunt_core`
-source files without checking `progress_log.md` first for the latest
-open items — this section is a snapshot, not a substitute for it.
+LaTeX Rendering, Cover Letter Agent, Email Generation Agent). Eight
+real agents exist and are registered: `resume_analysis`, `skill_gap`,
+`job_search`, `job_matching`, `ats_optimization`,
+`resume_customization`, `cover_letter`, `email_generation`. Ranking
+(`orchestration/ranking.py`) is a plain deterministic function, not an
+agent (api.md §3, confirmed during Phase 9). Two source connectors
+exist: `greenhouse` (public Job Board API) and `manual_import` (ToS
+fallback). ATS Optimization uses a deterministic keyword-extraction
+step (no LLM) before an LLM judgment step classifies gaps as
+supported/unsupported (agents.md §5). Resume Customization and Cover
+Letter both render real, compiling LaTeX PDFs via `DocumentRenderer`/
+`LaTeXRenderer` (`documents/renderer.py`) — this dev machine has a
+working MiKTeX install (lualatex/xelatex/pdflatex/pdftotext all
+confirmed working) — each with its own drafter→reviewer loop
+(`agents.md` §6, §7) that never lets the LLM touch contact info; Cover
+Letter Agent additionally reads `ResumeVersion.
+ats_extracted_text_path` directly to ground its reviewer's
+contradiction check in the tailored resume's actual text. Email
+Generation Agent is a single LLM call with no reviewer pass (agents.md
+§8: it only summarizes two already-approved documents) and persists
+nothing of its own. `RepositoryBundle` has 7 repos (added `documents:
+DocumentRepo` in Phase 11); `DocumentRepo` also owns `cover_letters`
+CRUD (Phase 12 reused it rather than adding an 8th `RepositoryBundle`
+field). Next up per `implementation_order.md`/`phases.md` is Phase 14
+(Application Tracking — Application Tracking Agent), which is also
+where `Application.resume_version_id`/`cover_letter_id` finally get
+added (deferred since Phase 11/12 for lack of a consumer until now).
+Do not write `jobhunt_core` source files without checking
+`progress_log.md` first for the latest open items — this section is a
+snapshot, not a substitute for it.
 
 ## Project Philosophy
 

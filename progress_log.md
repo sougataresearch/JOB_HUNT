@@ -1226,3 +1226,72 @@ documentation deferred to Phase 18).
 
 **Not yet done:** commit/push for this phase — next action. Phase 13
 (Email Automation) has not started.
+
+## 2026-08-08 — Phase 13 (Email Generation Agent) complete
+
+**Smallest phase since Phase 9 (`tasks.md` correctly estimated
+Complexity: S):** one schema module, one prompt, one agent, no new
+storage.
+
+**Built, per `tasks.md` T13.1:**
+- `schemas/email.py` (new module, not folded into `document.py` --
+  matches api.md §6's own dedicated `EmailDraft` section and design.md
+  §5's "schemas named for what they are" convention): `EmailDraft`
+  (api.md §6, `status` pinned to `Literal["draft"]`, no `send()`
+  capability exists anywhere in this API surface) and
+  `EmailDraftExtraction` (the LLM call's narrower output -- excludes
+  `attachments`/`status`, which the agent assembles directly from
+  `ResumeVersion.rendered_pdf_path`/`CoverLetter.rendered_pdf_path`,
+  never LLM-authored, per agents.md §8 Metrics' explicit "not an LLM
+  judgment").
+- `prompts/library/email/draft/1.0.md` and `EmailGenerationAgent`: a
+  single LLM call, no drafter→reviewer loop -- agents.md §8's own
+  Retry logic line ("Shared LLM retry policy only") distinguishes this
+  agent from Resume Customization/Cover Letter, and the reasoning
+  holds up: this agent never asserts a new claim about the candidate,
+  it only summarizes two documents a reviewer has already approved.
+  Missing recipient → `to=None` plus an explicit warning, never a
+  guessed address (agents.md §8 Failure handling) -- verified by a
+  dedicated test, not just asserted in the prompt text.
+- Writes nothing to storage (agents.md §8 Memory: "writes nothing
+  persisted independently in v1") -- no migration, no repo changes,
+  the smallest footprint of any agent phase so far.
+
+**A real doc gap caught and resolved, not silently deviated from:**
+tasks.md T13.1 lists the expected file as `agents/email_agent.py`, but
+agents.md §8's own header and `config/agents.yaml`'s existing
+`email_generation` key both use "email_generation" -- and every other
+agent module in this codebase is named after its registered agent name
+(`resume_customization_agent.py`, `ats_optimization_agent.py`, etc., a
+pattern with zero exceptions so far). Named the module
+`email_generation_agent.py` to keep that pattern unbroken, with an
+inline module-docstring note explaining the tasks.md mismatch rather
+than silently picking one name without comment.
+
+**A small, deliberate defensive check, not scope creep:** the agent
+validates `ResumeVersion.job_posting_id`/`CoverLetter.job_posting_id`
+both match the given `JobPosting` before assembling anything --
+neither agents.md nor api.md asks for this explicitly, but it's the
+same class of guard `CoverLetterAgent` (Phase 12) already applies to
+its own resume-version/profile pairing, and the cost of a silently
+mismatched attachment pairing (the wrong resume/cover-letter pair
+shipped in an application email) is exactly the kind of quiet,
+consequential bug that class of check exists to catch.
+
+**Verified, not assumed:** `ruff check`, `ruff format --check`, `mypy
+--strict` (72 source files), full `pytest` (256 passed, up from 252 --
+96% coverage maintained). `pre-commit run --all-files` green on the
+first pass.
+
+**Still open:** everything carried from Phase 12 (license
+confirmation, Ollama live-server smoke test, real LLM pricing, native
+system-prompt support on `LLMProvider`, `populate_by_name=True` audit,
+the recorded-cassette eval harness, Greenhouse rate-limit enforcement,
+optional LLM-assisted manual-paste normalization,
+`run_setup()`/`run_rank()`'s missing `engine.dispose()`, `agent_runs`/
+`prompt_versions` unbuilt, `Application.resume_version_id`/
+`cover_letter_id` deferred to Phase 14, Windows LaTeX setup
+documentation deferred to Phase 18).
+
+**Not yet done:** commit/push for this phase — next action. Phase 14
+(Application Tracking) has not started.
