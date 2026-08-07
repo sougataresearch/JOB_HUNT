@@ -26,6 +26,8 @@ _EXPECTED_TABLES = {
     "interviews",
     "interview_questions",
     "search_runs",
+    "templates",
+    "resume_versions",
 }
 
 
@@ -99,3 +101,19 @@ def test_downgrade_to_0001_then_upgrade_head_round_trips(
     command.upgrade(alembic_config, "head")
     tables_after_reupgrade = _table_names(tmp_path)
     assert "search_runs" in tables_after_reupgrade
+
+
+def test_0003_adds_templates_and_resume_versions(alembic_config: Config, tmp_path: Path) -> None:
+    """Phase 11's migration adds templates and resume_versions with working FKs."""
+    command.upgrade(alembic_config, "head")
+
+    engine = create_engine(f"sqlite:///{tmp_path / 'jobhunt.db'}")
+    try:
+        inspector = inspect(engine)
+        resume_version_fks = {
+            fk["referred_table"] for fk in inspector.get_foreign_keys("resume_versions")
+        }
+    finally:
+        engine.dispose()
+
+    assert resume_version_fks == {"candidate_profiles", "job_postings", "templates"}

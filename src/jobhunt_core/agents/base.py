@@ -20,6 +20,7 @@ from jobhunt_core.sources.base import JobSource
 from jobhunt_core.storage.repositories import (
     ApplicationRepo,
     ATSRepo,
+    DocumentRepo,
     InterviewRepo,
     JobRepo,
     MatchRepo,
@@ -39,6 +40,7 @@ class RepositoryBundle(BaseModel):
     ats: ATSRepo
     applications: ApplicationRepo
     interviews: InterviewRepo
+    documents: DocumentRepo
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 

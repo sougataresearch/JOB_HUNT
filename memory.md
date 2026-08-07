@@ -9,24 +9,32 @@ those win; update this file to match.
 
 ## Current Status
 
-**Phases 1–10 complete** (Foundation, Configuration, Core AI/LLM
+**Phases 1–11 complete** (Foundation, Configuration, Core AI/LLM
 Provider Layer, Storage & Schemas, CV Analysis/Resume Analysis Agent,
 Skill Gap Analysis/Skill Gap Agent, Job Search/Job Search Agent +
 source connectors, Job Matching/Job Matching Agent, Ranking, ATS
-Optimization/ATS Optimization Agent). Five real agents exist and are
-registered: `resume_analysis`, `skill_gap`, `job_search`,
-`job_matching`, `ats_optimization`. Ranking (`orchestration/ranking.py`)
-is a plain deterministic function, not an agent (api.md §3, confirmed
-during Phase 9). Two source connectors exist: `greenhouse` (public
-Job Board API) and `manual_import` (ToS fallback). ATS Optimization
-uses a deterministic keyword-extraction step (no LLM) before an LLM
-judgment step classifies gaps as supported/unsupported (agents.md §5).
-Next up per `implementation_order.md`/`phases.md` is Phase 11 (Resume
-Customization — Resume Customization Agent + LaTeX rendering, the
-first document-rendering phase, ADR-0007). Do not write `jobhunt_core`
-source files
-without checking `progress_log.md` first for the latest open items —
-this section is a snapshot, not a substitute for it.
+Optimization/ATS Optimization Agent, Resume Customization Agent +
+LaTeX Rendering). Six real agents exist and are registered:
+`resume_analysis`, `skill_gap`, `job_search`, `job_matching`,
+`ats_optimization`, `resume_customization`. Ranking
+(`orchestration/ranking.py`) is a plain deterministic function, not an
+agent (api.md §3, confirmed during Phase 9). Two source connectors
+exist: `greenhouse` (public Job Board API) and `manual_import` (ToS
+fallback). ATS Optimization uses a deterministic keyword-extraction
+step (no LLM) before an LLM judgment step classifies gaps as
+supported/unsupported (agents.md §5). Resume Customization renders
+real, compiling LaTeX PDFs via `DocumentRenderer`/`LaTeXRenderer`
+(`documents/renderer.py`) — this dev machine has a working MiKTeX
+install (lualatex/xelatex/pdflatex/pdftotext all confirmed working) —
+with a drafter→reviewer loop (`agents.md` §6) that never lets the LLM
+touch contact info or education, only summary/skills/experience
+wording. `RepositoryBundle` now has 7 repos (added `documents:
+DocumentRepo` in Phase 11). Next up per
+`implementation_order.md`/`phases.md` is Phase 12 (Cover Letters —
+Cover Letter Agent, reusing the `DocumentRenderer`/`Template`
+machinery Phase 11 just built). Do not write `jobhunt_core` source
+files without checking `progress_log.md` first for the latest open
+items — this section is a snapshot, not a substitute for it.
 
 ## Project Philosophy
 

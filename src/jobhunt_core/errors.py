@@ -2,7 +2,6 @@
 
 Subtypes are added by the phase that first needs them (rules.md AI
 Coding Rule 2), each subclassing ``JobHuntError`` defined here.
-Remaining subtypes (``RenderError``, ...) arrive in later phases.
 """
 
 from __future__ import annotations
@@ -73,4 +72,14 @@ class SourceFetchError(JobHuntError):
     Caught per-source by the Job Search Agent, not per-batch (design.md
     §10 "per-item isolation in batch operations") — one failing source
     never aborts the other sources' results.
+    """
+
+
+class RenderError(JobHuntError):
+    """Raised when document rendering/compilation fails (api.md, design.md §10).
+
+    Covers a LaTeX compile failure (the actual log is attached via
+    ``message``, never silently suppressed — design.md §10 "LaTeX
+    compile failures are first-class, not exceptions to suppress") and
+    a compile exceeding its timeout ceiling (config.md §Timeouts: 30s).
     """

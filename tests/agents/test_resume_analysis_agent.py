@@ -25,6 +25,7 @@ from jobhunt_core.schemas.profile import CandidateProfileExtraction, ExperienceE
 from jobhunt_core.storage.repositories import (
     ApplicationRepo,
     ATSRepo,
+    DocumentRepo,
     InterviewRepo,
     JobRepo,
     MatchRepo,
@@ -73,6 +74,7 @@ def _make_context(db_session: Session, llm: LLMProvider) -> RunContext:
         ats=ATSRepo(db_session),
         applications=ApplicationRepo(db_session),
         interviews=InterviewRepo(db_session),
+        documents=DocumentRepo(db_session),
     )
     return RunContext(settings=settings, llm=llm, repos=repos)
 

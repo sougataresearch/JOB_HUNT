@@ -18,6 +18,7 @@ from jobhunt_core.schemas.job import RawPosting, SearchQuery
 from jobhunt_core.storage.repositories import (
     ApplicationRepo,
     ATSRepo,
+    DocumentRepo,
     InterviewRepo,
     JobRepo,
     MatchRepo,
@@ -92,6 +93,7 @@ def _make_context(db_session: Session, sources: dict[str, object]) -> RunContext
         ats=ATSRepo(db_session),
         applications=ApplicationRepo(db_session),
         interviews=InterviewRepo(db_session),
+        documents=DocumentRepo(db_session),
     )
     return RunContext(settings=settings, llm=_FakeLLM(), repos=repos, sources=sources)  # type: ignore[arg-type]
 

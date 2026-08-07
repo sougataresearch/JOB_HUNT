@@ -1005,3 +1005,134 @@ enforcement, optional LLM-assisted manual-paste normalization,
 
 **Not yet done:** commit/push for this phase — next action. Phase 11
 (Resume Customization) has not started.
+
+## 2026-08-08 — Phase 11 (Resume Customization Agent + LaTeX Rendering) complete
+
+**By far the largest phase to date (`tasks.md` correctly estimated
+Complexity: L):** a full LaTeX rendering pipeline plus two new storage
+tables, not just one agent.
+
+**Resolved a carried-forward open item, for real, not just on paper:**
+"Windows LaTeX distribution setup" (open since the 2026-08-02 entry).
+This dev machine has MiKTeX installed (`lualatex`/`xelatex`/`pdflatex`/
+`pdftotext` all on PATH) — confirmed by actually compiling and
+extracting text from real PDFs throughout this phase's tests, not
+assumed. The remaining piece of that open item — README/setup
+*documentation* for a contributor whose machine doesn't have MiKTeX
+yet — is still Phase 18 work (final_review.md §1.2); what's resolved
+here is that the toolchain itself works and every acceptance criterion
+below was verified against a real compile, not a mock.
+
+**Built, per `tasks.md` T11.1–T11.3:**
+- `schemas/document.py` gained `Template`, `ResumeVersion`,
+  `PDFVerificationResult`, `ResumeDraft`/`TailoredExperienceEntry`,
+  `ReviewVerdict` — `Template`/`ResumeVersion` were explicitly deferred
+  to "Phase 11/12" in Phase 4's own progress_log entry, not scope
+  creep. `storage/models/document.py` (`TemplateModel`,
+  `ResumeVersionModel`), `storage/repositories/document_repo.py`
+  (`DocumentRepo`, bundling both — same reasoning as `Company`+
+  `SearchRun` inside `JobRepo`), and Alembic `0003` (two new
+  `CREATE TABLE`s, no batch-mode needed this time — no existing table
+  altered).
+- `documents/renderer.py` — `DocumentRenderer` Protocol + registry
+  (mirrors `LLMProvider`/`JobSource` exactly), `LaTeXRenderer`: a
+  Jinja2 environment with LaTeX-safe delimiters (`\VAR{}`/`\BLOCK{}`,
+  since default `{{ }}` collides with LaTeX's own `{}` grouping
+  syntax) and automatic escaping via Jinja2's `finalize` hook, so
+  **every** interpolated value is LaTeX-escaped with no way for a
+  template author to forget it — never raw string interpolation into
+  `.tex` (decisions.md ADR-0007). `compile()` shells out to `lualatex`
+  with a 30s timeout (config.md §Timeouts) and surfaces the real
+  compile log verbatim in `RenderError` on failure.
+- `documents/verify.py` — `pdftotext -layout` extraction, persists the
+  plaintext, confirms every expected section header is present.
+- `documents/templates/cv/resume.tex.jinja` — a real, working
+  single-column ATS-friendly CV template (geometry/enumitem/titlesec/
+  hyperref only — no exotic packages), with every section conditional
+  on that section's data actually being present.
+- `prompts/library/resume_customization/{draft,review}/1.0.md` and
+  `ResumeCustomizationAgent`: draft → independent fresh-context review
+  → one automatic redraft on rejection (agents.md §6 Retry logic) →
+  render → compile → verify → persist. The drafter never touches
+  name/email/phone/location/education at all — those come straight
+  from `CandidateProfile` in the renderer, not through the LLM,
+  structurally (not just by instruction) closing off a fabrication
+  surface for exactly the fields with no legitimate reason to be
+  reworded.
+
+**A real footgun found and fixed before it could waste anyone's
+time:** the first real end-to-end compile attempt hit the 30s
+`RenderError` timeout. Investigated rather than just raised the
+timeout: MiKTeX was auto-installing `enumitem`/`titlesec`/`hyperref`
+on their first-ever use in this environment (a one-time cost, not a
+hang) — confirmed by re-running the identical compile immediately
+after, which finished in ~2 seconds. No code change was the right fix
+here; logged as an honest, disclosed environment characteristic
+instead (a machine's very first resume compile may need longer than
+the steady-state 30s ceiling while packages install; every compile
+after that is fast).
+
+**Doc reconciliation:**
+- `decisions.md` ADR-0007 cited "`architecture.md` §4 Component
+  Hierarchy" — that section is actually in `design.md`, not
+  `architecture.md`, which has no §4 by that name. A real citation
+  error, not introduced by this phase, caught while grounding the
+  renderer's design in it. Fixed.
+- `prompts.md` §4's draft prompt draft named a `TEMPLATE_PLACEHOLDERS`/
+  `template_field_list` variable the shipped prompt drops (redundant
+  once structured output already constrains the LLM to `ResumeDraft`'s
+  exact fields, the same mechanism every other prompt in this library
+  already relies on) and adds `reviewer_feedback` (populated only on
+  the automatic redraft pass). Reconciled with an inline note.
+
+**A real, deliberate cross-cutting change, not scope creep:**
+`RepositoryBundle` gained a 7th field, `documents: DocumentRepo` —
+required, not defaulted, matching how all 6 existing fields are
+required (api.md §7's "one repository per aggregate" is a real
+commitment, not incidental). This meant updating every existing test
+file that constructs a `RepositoryBundle` directly (9 files) to add
+`documents=DocumentRepo(db_session)` — mechanical, verified by running
+the full suite after, not just assumed safe.
+
+**Consistent with, not a new instance of, an old deferral:**
+`ResumeVersion.agent_run_id` stays a plain non-FK reference, same as
+`MatchScore`/`ATSReport` (Phases 8, 10) — the `agent_runs` audit table
+itself remains unbuilt, "still open" since Phase 4's own log and
+carried forward again here rather than built as a surprise side quest.
+`Application.resume_version_id` is likewise not added yet — Phase 4
+deferred it "until target tables exist"; they exist now, but the
+*consumer* (Application Tracking Agent) doesn't until Phase 14, so
+adding the column now would have no reader, deferred to the phase that
+actually needs it.
+
+**Verified, not assumed — and unusually, most of it against a real
+compiler, not a fake:** `ruff check`, `ruff format --check`, `mypy
+--strict` (74 source files), full `pytest` (239 passed, up from 202 —
+96% coverage). All three of phases.md's Phase 11 acceptance criteria
+checked against real artifacts, not mocks: (1) a real `lualatex`
+compile with no manual intervention (`tests/documents/test_renderer.py`
+compiles and reads back an actual PDF); (2) extracted PDF text
+contains every expected section header and no fabricated content —
+the latter enforced structurally (drafter can't touch contact/
+education fields at all) and behaviorally (a draft rejected twice in a
+row raises `RenderError` and persists nothing, proven by
+`test_run_rejected_twice_raises_and_persists_nothing` actually
+querying `DocumentRepo` afterward); (3) a fixture with `&`, `%`, `_`,
+`#`, `$`, `{`, `}`, `~`, `^`, and a literal backslash compiles
+correctly and round-trips through `pdftotext` unescaped.
+
+**Still open:** everything carried from Phase 10 (license confirmation,
+Ollama live-server smoke test, real LLM pricing, native system-prompt
+support on `LLMProvider`, `populate_by_name=True` audit, the
+recorded-cassette eval harness, Greenhouse rate-limit enforcement,
+optional LLM-assisted manual-paste normalization,
+`run_setup()`/`run_rank()`'s missing `engine.dispose()`). Windows
+LaTeX *setup documentation* for other contributors' machines (Phase 18,
+narrowed from the old broader "Windows LaTeX docs" item now that the
+toolchain itself is confirmed working here). Added: `agent_runs`/
+`prompt_versions` remain unbuilt (carried since Phase 4, now also
+relevant to `ResumeVersion.agent_run_id`); `Application.
+resume_version_id` deferred to Phase 14.
+
+**Not yet done:** commit/push for this phase — next action. Phase 12
+(Cover Letters) has not started.

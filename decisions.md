@@ -208,7 +208,9 @@ MadsLorentzen/ai-job-search.
 **Consequences:** Requires a LaTeX distribution as a system dependency
 (`config.md`/`README.md` setup docs must call this out clearly). The
 renderer is implemented behind a `DocumentRenderer` strategy interface
-(`architecture.md` §4 Component Hierarchy) specifically so a
+(`design.md` §4 Component Hierarchy — corrected from `architecture.md`,
+which has no §4 by that name, a citation error caught during Phase 11
+implementation) specifically so a
 Markdown/HTML renderer can be added later as an alternative template
 type without changing agent code (`decisions.md` ADR-0008 covers the
 general template-registration mechanism).

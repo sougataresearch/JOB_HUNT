@@ -1,0 +1,55 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+\usepackage{titlesec}
+
+\pagestyle{empty}
+\setlist[itemize]{leftmargin=*,itemsep=2pt,topsep=2pt}
+\titleformat{\section}{\large\bfseries}{}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{10pt}{6pt}
+
+\begin{document}
+
+\begin{center}
+{\LARGE \textbf{\VAR{full_name}}}\\[4pt]
+\BLOCK{if email}\href{mailto:\VAR{email}}{\VAR{email}}\BLOCK{endif}
+\BLOCK{if phone} $\vert$ \VAR{phone}\BLOCK{endif}
+\BLOCK{if location} $\vert$ \VAR{location}\BLOCK{endif}
+\end{center}
+
+\BLOCK{if summary}
+\section*{Summary}
+\VAR{summary}
+\BLOCK{endif}
+
+\BLOCK{if skills}
+\section*{Skills}
+\VAR{skills | join(', ')}
+\BLOCK{endif}
+
+\BLOCK{if experience}
+\section*{Experience}
+\BLOCK{for entry in experience}
+\textbf{\VAR{entry.title}}, \VAR{entry.company} \hfill \VAR{entry.start_date} -- \VAR{entry.end_date}
+\begin{itemize}
+\BLOCK{for bullet in entry.bullets}
+\item \VAR{bullet}
+\BLOCK{endfor}
+\end{itemize}
+\BLOCK{endfor}
+\BLOCK{endif}
+
+\BLOCK{if education}
+\section*{Education}
+\BLOCK{for entry in education}
+\textbf{\VAR{entry.institution}}\BLOCK{if entry.degree}, \VAR{entry.degree}\BLOCK{endif}\BLOCK{if entry.field_of_study} in \VAR{entry.field_of_study}\BLOCK{endif} \hfill \VAR{entry.start_date} -- \VAR{entry.end_date}\\
+\BLOCK{endfor}
+\BLOCK{endif}
+
+\BLOCK{if certifications}
+\section*{Certifications}
+\VAR{certifications | join('; ')}
+\BLOCK{endif}
+
+\end{document}

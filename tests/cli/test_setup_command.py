@@ -18,6 +18,7 @@ from jobhunt_core.schemas.profile import CandidateProfileExtraction
 from jobhunt_core.storage.repositories import (
     ApplicationRepo,
     ATSRepo,
+    DocumentRepo,
     InterviewRepo,
     JobRepo,
     MatchRepo,
@@ -43,6 +44,7 @@ def test_run_setup_with_context_persists_profile(db_session: Session, fake_llm_f
         ats=ATSRepo(db_session),
         applications=ApplicationRepo(db_session),
         interviews=InterviewRepo(db_session),
+        documents=DocumentRepo(db_session),
     )
     ctx = RunContext(settings=settings, llm=fake_llm_factory(_EXTRACTION), repos=repos)
 

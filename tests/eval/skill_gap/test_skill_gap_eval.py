@@ -31,6 +31,7 @@ from jobhunt_core.schemas.skill_gap import SkillGapReport
 from jobhunt_core.storage.repositories import (
     ApplicationRepo,
     ATSRepo,
+    DocumentRepo,
     InterviewRepo,
     JobRepo,
     MatchRepo,
@@ -74,6 +75,7 @@ def test_skill_gap_golden_case(
         ats=ATSRepo(db_session),
         applications=ApplicationRepo(db_session),
         interviews=InterviewRepo(db_session),
+        documents=DocumentRepo(db_session),
     )
     ctx = RunContext(settings=settings, llm=fake_llm_factory(golden), repos=repos)
 

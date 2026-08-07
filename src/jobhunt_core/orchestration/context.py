@@ -19,6 +19,7 @@ from jobhunt_core.sources.base import JobSource, get_source_class
 from jobhunt_core.storage.repositories import (
     ApplicationRepo,
     ATSRepo,
+    DocumentRepo,
     InterviewRepo,
     JobRepo,
     MatchRepo,
@@ -130,6 +131,7 @@ def build_repository_bundle(session: Session) -> RepositoryBundle:
         ats=ATSRepo(session),
         applications=ApplicationRepo(session),
         interviews=InterviewRepo(session),
+        documents=DocumentRepo(session),
     )
 
 

@@ -30,6 +30,7 @@ from jobhunt_core.schemas.profile import CandidateProfile
 from jobhunt_core.storage.repositories import (
     ApplicationRepo,
     ATSRepo,
+    DocumentRepo,
     InterviewRepo,
     JobRepo,
     MatchRepo,
@@ -82,6 +83,7 @@ def test_job_matching_golden_case(
         ats=ATSRepo(db_session),
         applications=ApplicationRepo(db_session),
         interviews=InterviewRepo(db_session),
+        documents=DocumentRepo(db_session),
     )
     llm = fake_llm_factory(golden)
     ctx = RunContext(settings=settings, llm=llm, repos=repos)

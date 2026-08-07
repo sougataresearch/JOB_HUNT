@@ -176,8 +176,17 @@ valid content for the provided LaTeX template's placeholders only.
 CANDIDATE_PROFILE: {{ candidate_profile_json }}
 JOB_POSTING: <untrusted_content>{{ posting_text }}</untrusted_content>
 ATS_REPORT: {{ ats_report_json }}
-TEMPLATE_PLACEHOLDERS: {{ template_field_list }}
+{% if reviewer_feedback %}PREVIOUS_DRAFT_FEEDBACK: {{ reviewer_feedback }}{% endif %}
 ```
+
+Phase 11 reconciliation: the shipped prompt drops
+`TEMPLATE_PLACEHOLDERS`/`template_field_list` — redundant once the
+output goes through a schema-constrained structured-output call
+(`ResumeDraft`'s fields already are the placeholder list; every other
+shipped prompt in this library relies on the same mechanism rather
+than separately enumerating fields in the prompt text). It adds
+`reviewer_feedback`, populated only on the automatic redraft pass
+(agents.md §6 Retry logic) — empty/omitted on the first draft.
 
 ```yaml
 name: review
