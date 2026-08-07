@@ -1,21 +1,30 @@
-"""DocumentRepo — storage access for Template and ResumeVersion (api.md §7).
+"""DocumentRepo — storage access for Template, ResumeVersion, and CoverLetter (api.md §7).
 
-Both live in one repo (like ``Company``/``SearchRun`` inside
+All three live in one repo (like ``Company``/``SearchRun`` inside
 ``JobRepo``, Phases 4/7): small, tightly-coupled aggregates -- every
-``ResumeVersion`` references exactly one ``Template``, and neither is
-large enough to justify its own ``RepositoryBundle`` slot.
+``ResumeVersion``/``CoverLetter`` references exactly one ``Template``,
+a ``CoverLetter`` also references exactly one ``ResumeVersion``, and
+none is large enough to justify its own ``RepositoryBundle`` slot
+(Phase 12: reusing this repo rather than adding an 8th
+``RepositoryBundle`` field avoids repeating Phase 11's cross-cutting
+change across every existing test file for a table this tightly
+coupled to the two already here).
 """
 
 from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
-from jobhunt_core.schemas.document import ResumeVersion, Template
-from jobhunt_core.storage.models.document import ResumeVersionModel, TemplateModel
+from jobhunt_core.schemas.document import CoverLetter, ResumeVersion, Template
+from jobhunt_core.storage.models.document import (
+    CoverLetterModel,
+    ResumeVersionModel,
+    TemplateModel,
+)
 
 
 class DocumentRepo:
-    """CRUD access to ``templates`` and ``resume_versions``."""
+    """CRUD access to ``templates``, ``resume_versions``, and ``cover_letters``."""
 
     def __init__(self, session: Session) -> None:
         """Wrap a SQLAlchemy session; callers own the transaction boundary."""
@@ -62,6 +71,26 @@ class DocumentRepo:
             query = query.filter(getattr(ResumeVersionModel, key) == value)
         return [self._resume_version_to_schema(row) for row in query.all()]
 
+    def save_cover_letter(self, cover_letter: CoverLetter) -> CoverLetter:
+        """Insert a new cover_letters row (never updates an existing one -- immutable history)."""
+        data = cover_letter.model_dump(exclude={"id", "created_at"})
+        row = CoverLetterModel(**data)
+        self._session.add(row)
+        self._session.flush()
+        return self._cover_letter_to_schema(row)
+
+    def get_cover_letter(self, id: str) -> CoverLetter | None:
+        """Look up a cover letter by id, or ``None`` if it doesn't exist."""
+        row = self._session.get(CoverLetterModel, id)
+        return self._cover_letter_to_schema(row) if row is not None else None
+
+    def list_cover_letters(self, **filters: object) -> list[CoverLetter]:
+        """Return all cover letters matching the given column-value filters."""
+        query = self._session.query(CoverLetterModel)
+        for key, value in filters.items():
+            query = query.filter(getattr(CoverLetterModel, key) == value)
+        return [self._cover_letter_to_schema(row) for row in query.all()]
+
     def _template_to_schema(self, row: TemplateModel) -> Template:
         return Template(
             id=row.id,
@@ -83,6 +112,19 @@ class DocumentRepo:
             rendered_tex_path=row.rendered_tex_path,
             ats_verification_passed=row.ats_verification_passed,
             ats_extracted_text_path=row.ats_extracted_text_path,
+            agent_run_id=row.agent_run_id,
+            created_at=row.created_at,
+        )
+
+    def _cover_letter_to_schema(self, row: CoverLetterModel) -> CoverLetter:
+        return CoverLetter(
+            id=row.id,
+            application_id=row.application_id,
+            job_posting_id=row.job_posting_id,
+            resume_version_id=row.resume_version_id,
+            template_id=row.template_id,
+            rendered_pdf_path=row.rendered_pdf_path,
+            rendered_tex_path=row.rendered_tex_path,
             agent_run_id=row.agent_run_id,
             created_at=row.created_at,
         )

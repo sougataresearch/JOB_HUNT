@@ -1,8 +1,8 @@
-"""Round-trip tests for DocumentRepo (phases.md Phase 11 acceptance criteria)."""
+"""Round-trip tests for DocumentRepo (phases.md Phase 11/12 acceptance criteria)."""
 
 from sqlalchemy.orm import Session
 
-from jobhunt_core.schemas.document import ResumeVersion
+from jobhunt_core.schemas.document import CoverLetter, ResumeVersion
 from jobhunt_core.schemas.job import JobPosting
 from jobhunt_core.schemas.profile import CandidateProfile
 from jobhunt_core.storage.repositories.document_repo import DocumentRepo
@@ -110,3 +110,105 @@ def test_list_resume_versions_filters_by_profile(db_session: Session) -> None:
 
     assert len(results) == 2
     assert all(r.profile_id == profile_a.id for r in results)
+
+
+def test_cover_letter_round_trip(db_session: Session) -> None:
+    """A saved cover_letter reads back with every field intact."""
+    profile = ProfileRepo(db_session).save(CandidateProfile(full_name="Jane Doe"))
+    posting = JobRepo(db_session).save(
+        JobPosting(
+            source="greenhouse", source_id="1", title="Engineer", url="https://example.com/1"
+        )
+    )
+    repo = DocumentRepo(db_session)
+    resume_template = repo.get_or_create_template(
+        kind="resume", name="resume", file_path="cv/resume.tex.jinja"
+    )
+    resume_version = repo.save_resume_version(
+        ResumeVersion(
+            profile_id=profile.id,
+            job_posting_id=posting.id,
+            template_id=resume_template.id,
+            rendered_pdf_path="/data/documents/resumes/x/resume.pdf",
+            rendered_tex_path="/data/documents/resumes/x/resume.tex",
+            ats_verification_passed=True,
+            ats_extracted_text_path="/data/documents/resumes/x/resume.extracted.txt",
+        )
+    )
+    cover_letter_template = repo.get_or_create_template(
+        kind="cover_letter", name="cover_letter", file_path="cover_letter/cover_letter.tex.jinja"
+    )
+
+    saved = repo.save_cover_letter(
+        CoverLetter(
+            job_posting_id=posting.id,
+            resume_version_id=resume_version.id,
+            template_id=cover_letter_template.id,
+            rendered_pdf_path="/data/documents/cover_letters/x/cover_letter.pdf",
+            rendered_tex_path="/data/documents/cover_letters/x/cover_letter.tex",
+        )
+    )
+
+    fetched = repo.get_cover_letter(saved.id)
+
+    assert fetched is not None
+    assert fetched.job_posting_id == posting.id
+    assert fetched.resume_version_id == resume_version.id
+    assert fetched.template_id == cover_letter_template.id
+    assert fetched.application_id is None
+
+
+def test_get_cover_letter_missing_returns_none(db_session: Session) -> None:
+    """A cover letter id that doesn't exist returns None, not an error."""
+    repo = DocumentRepo(db_session)
+
+    assert repo.get_cover_letter("does-not-exist") is None
+
+
+def test_list_cover_letters_filters_by_job_posting(db_session: Session) -> None:
+    """list_cover_letters(**filters) narrows to matching rows."""
+    profile = ProfileRepo(db_session).save(CandidateProfile(full_name="Jane Doe"))
+    posting_a = JobRepo(db_session).save(
+        JobPosting(source="greenhouse", source_id="1", title="A", url="https://example.com/1")
+    )
+    posting_b = JobRepo(db_session).save(
+        JobPosting(source="greenhouse", source_id="2", title="B", url="https://example.com/2")
+    )
+    repo = DocumentRepo(db_session)
+    resume_template = repo.get_or_create_template(
+        kind="resume", name="r", file_path="cv/r.tex.jinja"
+    )
+    cover_letter_template = repo.get_or_create_template(
+        kind="cover_letter", name="cl", file_path="cover_letter/cl.tex.jinja"
+    )
+
+    def _save(job_posting_id: str) -> None:
+        resume_version = repo.save_resume_version(
+            ResumeVersion(
+                profile_id=profile.id,
+                job_posting_id=job_posting_id,
+                template_id=resume_template.id,
+                rendered_pdf_path="r.pdf",
+                rendered_tex_path="r.tex",
+                ats_verification_passed=True,
+                ats_extracted_text_path="r.txt",
+            )
+        )
+        repo.save_cover_letter(
+            CoverLetter(
+                job_posting_id=job_posting_id,
+                resume_version_id=resume_version.id,
+                template_id=cover_letter_template.id,
+                rendered_pdf_path="cl.pdf",
+                rendered_tex_path="cl.tex",
+            )
+        )
+
+    _save(posting_a.id)
+    _save(posting_a.id)
+    _save(posting_b.id)
+
+    results = repo.list_cover_letters(job_posting_id=posting_a.id)
+
+    assert len(results) == 2
+    assert all(r.job_posting_id == posting_a.id for r in results)

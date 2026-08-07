@@ -1136,3 +1136,93 @@ resume_version_id` deferred to Phase 14.
 
 **Not yet done:** commit/push for this phase — next action. Phase 12
 (Cover Letters) has not started.
+
+## 2026-08-08 — Phase 12 (Cover Letter Agent) complete
+
+**Built, per `tasks.md` T12.1–T12.2:**
+- `schemas/document.py` gained `CoverLetterDraft` (drafter LLM output,
+  no name/contact fields, same fabrication-surface reasoning as
+  `ResumeDraft`) and `CoverLetter` (database.md §8). `ReviewVerdict`
+  from Phase 11 is reused unchanged for the reviewer pass — its shape
+  is domain-agnostic, only the prompt content differs.
+- `storage/models/document.py` gained `CoverLetterModel`; Alembic
+  `0004` creates `cover_letters` with FKs to `applications` (nullable),
+  `job_postings`, `resume_versions`, `templates`.
+- `documents/templates/cover_letter/cover_letter.tex.jinja` — a simple
+  letter-format template (geometry/hyperref/parskip only), contact
+  block from `CandidateProfile`, `\today` for the date, salutation/
+  paragraphs/sign-off from the draft.
+- `prompts/library/cover_letter/{draft,review}/1.0.md` and
+  `CoverLetterAgent`: same draft → independent review → one automatic
+  redraft → render → compile → persist pipeline as Resume
+  Customization (agents.md §7: "same pattern... shared drafter→
+  reviewer + recompile policy").
+
+**A real, load-bearing reuse of Phase 11's own output, not just its
+code:** the reviewer needs the *tailored resume's actual text* to
+check for contradictions (agents.md §7 "stay consistent with the
+tailored resume's claims"), but `ResumeVersion` only stores file
+paths/booleans, no text. Rather than re-deriving resume content
+independently (e.g. re-reading the profile), `CoverLetterAgent` reads
+`ResumeVersion.ats_extracted_text_path` directly — the plaintext Phase
+11's `verify_pdf_text()` already extracted and persisted to disk. This
+is what phases.md's "reuse of the Phase 11 rendering/verification
+pipeline" cashes out to concretely for this agent's cross-check
+requirement, even though Cover Letter Agent doesn't run its own
+PDF-verification step (see below).
+
+**A scoped, documented deviation from database.md/agents.md, not a
+silent one:** `cover_letters` has no `ats_verification_passed`/
+`ats_extracted_text_path` columns (database.md §8 defines none, unlike
+`resume_versions`), and agents.md §7's Tools/Memory list only
+`DocumentRenderer`, not the verify module. So `CoverLetterAgent` reuses
+only render+compile from Phase 11, not PDF-text verification —
+justified by cover letters not being ATS-parsed the rigid way resumes
+are, and by database.md's own schema already reflecting that. Recorded
+here rather than silently narrowing scope without comment.
+
+**Reused `DocumentRepo` instead of repeating Phase 11's cross-cutting
+change:** `cover_letters` FKs to two of the three tables `DocumentRepo`
+already owns (`templates`, `resume_versions`), so `CoverLetter` CRUD
+was added to `DocumentRepo` rather than adding an 8th `RepositoryBundle`
+field — avoids re-touching every existing test file that constructs a
+`RepositoryBundle` directly, which Phase 11's genuinely-new-repo case
+required but this one doesn't.
+
+**A real, testable operationalization of a fuzzy AC, not "vibes":**
+phases.md's Phase 12 AC ("references at least N concrete details from
+the posting... a simple keyword-presence eval, not just vibes") names
+no value for N — chosen `_MIN_POSTING_DETAILS = 3` in
+`cover_letter_agent.py`, documented inline as this implementation's own
+threshold, not a value drawn from any doc. Implemented as a
+deterministic post-draft check (`_posting_detail_words`/
+`_count_referenced_details`, no LLM), surfaced as a warning (not a
+hard failure) when below threshold — consistent with the project's
+"fail loud to the user, fail soft to the pipeline" pattern already used
+for `ats_verification_passed=False`. The reviewer prompt separately
+enforces contradiction/genericness rejection at the LLM-judgment level;
+the deterministic check is a second, non-LLM signal, not a replacement
+for it (testing.md §3's general distrust of pure LLM self-assessment).
+
+**Verified, not assumed:** `ruff check`, `ruff format --check`, `mypy
+--strict` (70 source files), full `pytest` (252 passed, up from 239 —
+96% coverage maintained). Real `lualatex` compiles throughout
+`tests/agents/test_cover_letter_agent.py` (no mocks), including a
+special-characters compile-safety case and a deterministic
+`_posting_detail_words`/`_count_referenced_details` unit test needing
+no LLM/compile at all. `pre-commit run --all-files` green on the first
+pass (no version-drift oscillation this time — the affected file from
+Phases 8/9/11 wasn't touched).
+
+**Still open:** everything carried from Phase 11 (license confirmation,
+Ollama live-server smoke test, real LLM pricing, native system-prompt
+support on `LLMProvider`, `populate_by_name=True` audit, the
+recorded-cassette eval harness, Greenhouse rate-limit enforcement,
+optional LLM-assisted manual-paste normalization,
+`run_setup()`/`run_rank()`'s missing `engine.dispose()`, `agent_runs`/
+`prompt_versions` unbuilt, `Application.resume_version_id`/
+`cover_letter_id` deferred to Phase 14, Windows LaTeX setup
+documentation deferred to Phase 18).
+
+**Not yet done:** commit/push for this phase — next action. Phase 13
+(Email Automation) has not started.

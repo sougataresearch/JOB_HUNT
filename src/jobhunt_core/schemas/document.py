@@ -107,8 +107,62 @@ class ResumeDraft(BaseModel):
 
 
 class ReviewVerdict(BaseModel):
-    """The reviewer LLM call's output (agents.md §6 drafter->reviewer loop, prompts.md §4)."""
+    """The reviewer LLM call's output (agents.md §6 drafter->reviewer loop, prompts.md §4).
+
+    Reused unchanged by the Cover Letter Agent's reviewer pass
+    (agents.md §7: "same pattern as Resume Customization Agent") --
+    the shape (approved/feedback/fabrication_flags) is domain-agnostic,
+    only the prompt content driving it differs per agent.
+    """
 
     approved: bool
     feedback: str
     fabrication_flags: list[str] = Field(default_factory=list)
+
+
+class CoverLetterDraft(BaseModel):
+    """The Cover Letter Agent drafter LLM call's output (agents.md §7, prompts.md).
+
+    Deliberately excludes name/email/phone/location -- same
+    fabrication-surface reasoning as ``ResumeDraft``: those come
+    straight from ``CandidateProfile`` in the renderer, never the LLM.
+    """
+
+    salutation: str
+    paragraphs: list[str] = Field(default_factory=list)
+    sign_off: str
+
+
+class CoverLetter(BaseModel):
+    """A tailored, compiled cover letter (database.md §8, agents.md §7 output).
+
+    ``application_id`` stays ``None`` until Phase 14's Application
+    Tracking Agent links it -- database.md §8's own "nullable until
+    application created" note, the same deferred-linkage pattern
+    Phase 11's progress_log entry applied to ``Application.
+    resume_version_id``/``cover_letter_id``.
+
+    ``agent_run_id`` is a plain reference, not a DB foreign key --
+    same deliberate deferral already applied to ``ResumeVersion``/
+    ``MatchScore``/``ATSReport``.
+
+    Unlike ``ResumeVersion``, there is no ``ats_verification_passed``/
+    ``ats_extracted_text_path`` pair here -- database.md §8 defines no
+    such columns for ``cover_letters``, and agents.md §7's Tools/Memory
+    list only ``DocumentRenderer`` (render+compile), not the PDF-text
+    verification module. Cover letters are not machine-parsed by ATS
+    the way resumes are, so that half of Phase 11's pipeline isn't
+    reused here -- only render+compile is (phases.md Phase 12
+    Deliverables: "reuse of the Phase 11 rendering/verification
+    pipeline" is satisfied by the shared ``DocumentRenderer``).
+    """
+
+    id: str | None = None
+    application_id: str | None = None
+    job_posting_id: str
+    resume_version_id: str
+    template_id: str
+    rendered_pdf_path: str
+    rendered_tex_path: str
+    agent_run_id: str | None = None
+    created_at: datetime | None = None

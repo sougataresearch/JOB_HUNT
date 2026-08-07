@@ -28,6 +28,7 @@ _EXPECTED_TABLES = {
     "search_runs",
     "templates",
     "resume_versions",
+    "cover_letters",
 }
 
 
@@ -117,3 +118,19 @@ def test_0003_adds_templates_and_resume_versions(alembic_config: Config, tmp_pat
         engine.dispose()
 
     assert resume_version_fks == {"candidate_profiles", "job_postings", "templates"}
+
+
+def test_0004_adds_cover_letters(alembic_config: Config, tmp_path: Path) -> None:
+    """Phase 12's migration adds cover_letters with working FKs."""
+    command.upgrade(alembic_config, "head")
+
+    engine = create_engine(f"sqlite:///{tmp_path / 'jobhunt.db'}")
+    try:
+        inspector = inspect(engine)
+        cover_letter_fks = {
+            fk["referred_table"] for fk in inspector.get_foreign_keys("cover_letters")
+        }
+    finally:
+        engine.dispose()
+
+    assert cover_letter_fks == {"applications", "job_postings", "resume_versions", "templates"}

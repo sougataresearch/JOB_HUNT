@@ -1,0 +1,28 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{parskip}
+
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{flushright}
+\VAR{full_name}\\
+\BLOCK{if email}\href{mailto:\VAR{email}}{\VAR{email}}\\\BLOCK{endif}
+\BLOCK{if phone}\VAR{phone}\\\BLOCK{endif}
+\BLOCK{if location}\VAR{location}\\\BLOCK{endif}
+\today
+\end{flushright}
+
+\vspace{1em}
+\VAR{salutation}
+
+\BLOCK{for paragraph in paragraphs}
+\VAR{paragraph}
+
+\BLOCK{endfor}
+\VAR{sign_off}\\
+\VAR{full_name}
+
+\end{document}

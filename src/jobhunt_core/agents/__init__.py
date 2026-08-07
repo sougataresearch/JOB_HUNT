@@ -9,6 +9,7 @@ list below, never left to be found by a filesystem walk.
 
 from jobhunt_core.agents import (
     ats_optimization_agent,  # noqa: F401
+    cover_letter_agent,  # noqa: F401
     job_matching_agent,  # noqa: F401
     job_search_agent,  # noqa: F401
     resume_analysis_agent,  # noqa: F401
@@ -18,6 +19,7 @@ from jobhunt_core.agents import (
 
 __all__ = [
     "ats_optimization_agent",
+    "cover_letter_agent",
     "job_matching_agent",
     "job_search_agent",
     "resume_analysis_agent",

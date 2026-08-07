@@ -1,4 +1,4 @@
-"""Template and ResumeVersion SQLAlchemy models (database.md §3, §14)."""
+"""Template, ResumeVersion, and CoverLetter SQLAlchemy models (database.md §3, §8, §14)."""
 
 from __future__ import annotations
 
@@ -41,5 +41,29 @@ class ResumeVersionModel(UUIDPKMixin, Base):
     rendered_tex_path: Mapped[str] = mapped_column(Text)
     ats_verification_passed: Mapped[bool] = mapped_column(Boolean)
     ats_extracted_text_path: Mapped[str] = mapped_column(Text)
+    agent_run_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class CoverLetterModel(UUIDPKMixin, Base):
+    """The ``cover_letters`` table (database.md §8).
+
+    No ``profile_id`` column -- database.md §8 doesn't define one
+    (unlike ``resume_versions``); the profile is reachable indirectly
+    via ``resume_version_id -> resume_versions.profile_id`` if ever
+    needed. No ``updated_at`` -- immutable once rendered, same as
+    ``ResumeVersionModel``.
+    """
+
+    __tablename__ = "cover_letters"
+
+    application_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("applications.id"), nullable=True
+    )
+    job_posting_id: Mapped[str] = mapped_column(String(36), ForeignKey("job_postings.id"))
+    resume_version_id: Mapped[str] = mapped_column(String(36), ForeignKey("resume_versions.id"))
+    template_id: Mapped[str] = mapped_column(String(36), ForeignKey("templates.id"))
+    rendered_pdf_path: Mapped[str] = mapped_column(Text)
+    rendered_tex_path: Mapped[str] = mapped_column(Text)
     agent_run_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
