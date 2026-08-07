@@ -1,0 +1,33 @@
+case_name: adjacent_field_transferable_skills
+
+input:
+  candidate_profile:
+    full_name: "Robin Chen"
+    skills: ["Data Analysis", "SQL", "Python", "Tableau", "A/B Testing"]
+    experience:
+      - title: "Data Analyst"
+        company: "RetailCo"
+        start_date: "2021"
+        end_date: "2024"
+        bullets:
+          - "Wrote complex SQL queries against a 50-table warehouse"
+          - "Automated reporting pipelines in Python"
+  job_posting:
+    title: "Analytics Engineer"
+    normalized_description: >
+      Analytics Engineer role: SQL and Python required, dbt and data
+      warehouse modeling experience strongly preferred.
+
+golden_response:
+  score: 60.0
+  matched_requirements: ["SQL", "Python", "data warehouse experience"]
+  missing_requirements: ["dbt"]
+  red_flags: []
+  rationale: >
+    The candidate's SQL and Python skills, plus hands-on data-warehouse
+    query experience, transfer well to this Analytics Engineer role;
+    dbt specifically isn't mentioned anywhere in skills or experience.
+
+expected_properties:
+  score_band: [45, 75]
+  insufficient_data: false

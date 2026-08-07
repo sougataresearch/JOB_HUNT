@@ -1,0 +1,34 @@
+case_name: strong_match_python_backend
+
+input:
+  candidate_profile:
+    full_name: "Jordan Lee"
+    skills: ["Python", "Django", "PostgreSQL", "Docker", "AWS", "REST APIs"]
+    experience:
+      - title: "Backend Engineer"
+        company: "Widget Inc"
+        start_date: "2019"
+        end_date: "2024"
+        bullets:
+          - "Designed and shipped a Django/PostgreSQL billing service"
+          - "Owned Docker-based deployment to AWS ECS"
+  job_posting:
+    title: "Backend Engineer"
+    normalized_description: >
+      We are looking for a Backend Engineer with strong Python and
+      Django experience, PostgreSQL, and containerized deployments on
+      AWS. You'll own our billing service end to end.
+
+golden_response:
+  score: 90.0
+  matched_requirements: ["Python", "Django", "PostgreSQL", "AWS", "Docker"]
+  missing_requirements: []
+  red_flags: []
+  rationale: >
+    The candidate's Django/PostgreSQL billing service and AWS ECS
+    deployment experience directly match the posting's core stack and
+    even the billing-service domain.
+
+expected_properties:
+  score_band: [75, 100]
+  insufficient_data: false

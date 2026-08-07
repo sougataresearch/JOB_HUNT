@@ -1,0 +1,33 @@
+case_name: close_match_minor_gap
+
+input:
+  candidate_profile:
+    full_name: "Taylor Kim"
+    skills: ["Python", "Django", "PostgreSQL", "Docker", "AWS", "REST APIs"]
+    experience:
+      - title: "Backend Engineer"
+        company: "Acme Corp"
+        start_date: "2020"
+        end_date: "2024"
+        bullets:
+          - "Built REST APIs serving 10M requests/day"
+          - "Owned Docker-based deployments to AWS"
+  job_posting:
+    title: "Backend Engineer"
+    normalized_description: >
+      Backend Engineer, Python/Django, PostgreSQL, containerized
+      deployments on AWS. GraphQL experience is a plus.
+
+golden_response:
+  score: 85.0
+  matched_requirements: ["Python", "Django", "PostgreSQL", "AWS", "Docker"]
+  missing_requirements: ["GraphQL"]
+  red_flags: []
+  rationale: >
+    The candidate's stack matches the posting's core requirements
+    almost exactly; only the "nice to have" GraphQL experience is
+    missing, which isn't a core requirement.
+
+expected_properties:
+  score_band: [70, 95]
+  insufficient_data: false

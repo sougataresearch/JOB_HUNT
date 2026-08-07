@@ -1,0 +1,26 @@
+case_name: sparse_profile_vs_detailed_posting
+
+input:
+  candidate_profile:
+    full_name: "A. Candidate"
+    skills: ["Python"]
+  job_posting:
+    title: "Senior Data Engineer"
+    normalized_description: >
+      Senior Data Engineer needed with Python, Airflow, Spark, dbt, and
+      Snowflake experience, plus 5+ years building production data
+      pipelines.
+
+golden_response:
+  score: 20.0
+  matched_requirements: ["Python"]
+  missing_requirements: ["Airflow", "Spark", "dbt", "Snowflake", "5+ years of production pipeline experience"]
+  red_flags: []
+  rationale: >
+    The profile lists only Python with no experience entries at all, so
+    almost none of the posting's specific data-engineering tooling or
+    the 5+ years requirement can be confirmed as matched.
+
+expected_properties:
+  score_band: [0, 30]
+  insufficient_data: false

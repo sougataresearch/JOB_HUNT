@@ -1,0 +1,43 @@
+case_name: seniority_mismatch_overqualified
+
+input:
+  candidate_profile:
+    full_name: "Marcus Webb"
+    skills: ["Python", "Go", "Kubernetes", "System Design", "Team Leadership"]
+    experience:
+      - title: "Staff Software Engineer"
+        company: "BigTech Corp"
+        start_date: "2012"
+        end_date: "2024"
+        bullets:
+          - "Led architecture for a platform serving 500M requests/day"
+          - "Mentored 15 engineers across 3 teams"
+      - title: "Senior Software Engineer"
+        company: "MidSize Co"
+        start_date: "2008"
+        end_date: "2012"
+        bullets:
+          - "Built the company's first microservices platform"
+  job_posting:
+    title: "Junior Software Engineer (New Grad)"
+    normalized_description: >
+      Entry-level Software Engineer role for recent graduates. You'll
+      work on well-scoped tickets with close mentorship from senior
+      engineers. Python experience from coursework or internships
+      welcome.
+
+golden_response:
+  score: 45.0
+  matched_requirements: ["Python"]
+  missing_requirements: []
+  red_flags: ["Candidate has 16 years of experience up to Staff level, applying to a new-grad/entry-level role -- significant seniority mismatch in the overqualified direction."]
+  rationale: >
+    The candidate's Python skills technically satisfy the posting, but
+    16 years of experience up to Staff Engineer is a substantial
+    mismatch against a new-grad entry-level role explicitly designed
+    for close mentorship of junior engineers.
+
+expected_properties:
+  score_band: [25, 60]
+  insufficient_data: false
+  requires_red_flag: true

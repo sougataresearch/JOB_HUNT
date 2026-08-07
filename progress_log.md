@@ -755,3 +755,80 @@ agents.md §3's optional LLM-assisted manual-paste normalization
 (Job Matching) has not started (this session's single combined request
 covers Phases 7–9, but each is still its own commit, matching every
 prior phase's convention).
+
+## 2026-08-07 — Phase 8 (Job Matching — Job Matching Agent) complete
+
+**Built, per `tasks.md` T8.1:** `schemas/match.py`'s `MatchScoreExtraction`
+(narrower than `MatchScore`, same `CandidateProfileExtraction` pattern
+from Phase 5 — excludes `id`/`job_posting_id`/`profile_id`/
+`agent_run_id`/`created_at`, fields the model has no basis to fill
+in); the prompt file `prompts/library/job_matching/score/1.0.md`
+(reconciles `prompts.md` §2's draft, which already existed from the
+doc phase — used near-verbatim, extended slightly with an explicit
+no-generic-filler instruction); `JobMatchingAgent`. `MatchScore` itself
+needed no changes — it was already fully built in Phase 4.
+
+**Two things agents.md §4 asks for that no prior agent needed, both
+implemented for real, not stubbed:**
+- **Forced `temperature=0.0`** on every `complete_structured` call
+  (PRD.md §6 Determinism) — not just relying on the provider's
+  default, so a future default change elsewhere can't silently
+  un-pin this agent's reproducibility. Verified with a dedicated test
+  that inspects what the fake provider actually received, not just
+  that the code compiles.
+- **A schema-validation-specific retry**, distinct from the shared
+  transport-level `call_with_retry` backoff (design.md §11) that
+  already lives in each provider adapter: if the LLM's structured
+  response fails `MatchScoreExtraction` validation, the agent re-asks
+  once with a stricter instruction appended to the same prompt before
+  giving up. A second failure propagates the `ValidationError` rather
+  than returning a partially-parsed score (agents.md §4 Failure
+  handling, "never silently returns a partially-parsed score") — both
+  the retry-then-succeed and the give-up-after-two paths have their
+  own test, using a small local fake LLM built for this (not the
+  shared `FakeLLMProvider`, which always validates successfully by
+  construction and can't exercise this path).
+
+**Built the regression suite `testing.md` §4 names as "the canonical
+example":** `tests/eval/job_matching/cases/*.yaml`, 10 labeled
+(profile, posting, expected score band) pairs — strong match, weak
+match (different field entirely), partial match, two seniority-
+mismatch directions (over- and under-qualified), a sparse profile, a
+close-match-minor-gap, a completely different profession, an
+unrealistic-requirement-stacking posting, and an adjacent-field
+transferable-skills case. Each case's `matched_requirements`/
+`missing_requirements` are checked against a **word-overlap grounding
+check** (≥50% of a requirement's significant words must appear in the
+posting or profile text) — deliberately not an exact-substring check,
+since real rationale text paraphrases ("own our platform architecture"
+vs. "platform architecture ownership" shouldn't count as fabrication),
+but still catches a requirement sharing *no* words with either source
+text. This directly operationalizes phases.md's Phase 8 acceptance
+criterion ("rationale references concrete posting/profile text, not
+generic filler") as a real, running check, not just a docstring claim.
+
+**Honest limitation, same category as every prior eval suite:** these
+10 cases prove the agent's assembly and the grading checks above are
+correct given a hand-scripted "golden" response — they do not prove a
+*real* LLM would score these cases within the labeled band. Upgrading
+requires the same recorded-cassette/live-credential harness flagged as
+still-open since Phase 5.
+
+**No architecture.md change needed this phase:** `JobMatchingAgent`
+only touches modules already listed as `agents/` dependencies
+(`schemas/`, `prompts/`) — checked, found accurate as-is.
+
+**Verified, not assumed:** `ruff check`, `ruff format --check`, `mypy
+--strict` (66 source files), full `pytest` (175 passed, up from 156 —
+95% coverage), all passing including the 9 agent-level plumbing tests
+and the 10-case regression suite.
+
+**Still open:** everything carried from Phase 7 (license confirmation,
+Ranking agent-vs-mode decision — next up in Phase 9 itself, Windows
+LaTeX docs, Ollama live-server smoke test, real LLM pricing, native
+system-prompt support on `LLMProvider`, `populate_by_name=True` audit,
+the recorded-cassette eval harness, Greenhouse rate-limit enforcement,
+optional LLM-assisted manual-paste normalization).
+
+**Not yet done:** commit/push for this phase — next action. Phase 9
+(Ranking) has not started.

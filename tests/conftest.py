@@ -42,6 +42,7 @@ class FakeLLMProvider:
         """Store the response every ``complete_structured`` call will return."""
         self._structured_response = structured_response
         self.last_prompt: str | None = None
+        self.last_temperature: float | None = None
 
     def complete(
         self,
@@ -67,6 +68,7 @@ class FakeLLMProvider:
     ) -> StructuredLLMResponse[SchemaT]:
         """Validate the scripted response against response_schema and return it."""
         self.last_prompt = prompt
+        self.last_temperature = temperature
         parsed = response_schema.model_validate(self._structured_response.model_dump())
         return StructuredLLMResponse(
             text="fake",

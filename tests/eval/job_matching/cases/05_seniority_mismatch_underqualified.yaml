@@ -1,0 +1,35 @@
+case_name: seniority_mismatch_underqualified
+
+input:
+  candidate_profile:
+    full_name: "Ana Costa"
+    skills: ["Python", "SQL"]
+    experience:
+      - title: "Junior Developer"
+        company: "StartupXYZ"
+        start_date: "2023"
+        end_date: "2024"
+        bullets:
+          - "Fixed bugs and wrote unit tests for an internal admin tool"
+  job_posting:
+    title: "Staff Software Engineer"
+    normalized_description: >
+      We need a Staff Software Engineer with 10+ years of experience to
+      own our platform architecture, lead cross-team technical
+      initiatives, and mentor senior engineers. Deep Python and
+      distributed-systems expertise required.
+
+golden_response:
+  score: 12.0
+  matched_requirements: ["Python"]
+  missing_requirements: ["10+ years of experience", "platform architecture ownership", "distributed-systems expertise", "mentoring senior engineers"]
+  red_flags: ["Candidate has under 2 years of experience at Junior level, applying to a Staff role requiring 10+ years and cross-team technical leadership -- severe seniority mismatch."]
+  rationale: >
+    The candidate has roughly one year of junior-level experience
+    fixing bugs; the posting requires 10+ years and staff-level
+    architectural leadership, a gap far beyond a normal stretch role.
+
+expected_properties:
+  score_band: [0, 25]
+  insufficient_data: false
+  requires_red_flag: true

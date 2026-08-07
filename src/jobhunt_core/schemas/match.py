@@ -26,3 +26,19 @@ class MatchScore(BaseModel):
     rationale: str
     agent_run_id: str | None = None
     created_at: datetime | None = None
+
+
+class MatchScoreExtraction(BaseModel):
+    """What the Job Matching Agent's LLM call actually produces (agents.md §4).
+
+    Narrower than ``MatchScore``, excluding fields the model has no
+    basis to fill in (``id``, ``job_posting_id``, ``profile_id``,
+    ``agent_run_id``, ``created_at``) -- those are set by the agent,
+    same pattern as ``CandidateProfileExtraction`` (Phase 5).
+    """
+
+    score: float
+    matched_requirements: list[str] = Field(default_factory=list)
+    missing_requirements: list[str] = Field(default_factory=list)
+    red_flags: list[str] = Field(default_factory=list)
+    rationale: str

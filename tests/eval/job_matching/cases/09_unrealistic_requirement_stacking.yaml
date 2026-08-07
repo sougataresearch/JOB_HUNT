@@ -1,0 +1,36 @@
+case_name: unrealistic_requirement_stacking
+
+input:
+  candidate_profile:
+    full_name: "Chris Okafor"
+    skills: ["Python", "Rust", "Kubernetes", "Terraform", "Go"]
+    experience:
+      - title: "Platform Engineer"
+        company: "CloudNine Systems"
+        start_date: "2019"
+        end_date: "2024"
+        bullets:
+          - "Migrated production infrastructure to Kubernetes on Rust-based tooling"
+          - "Built Terraform modules used company-wide"
+  job_posting:
+    title: "Platform Engineer"
+    normalized_description: >
+      Seeking a Platform Engineer with 8+ years of production Rust
+      experience (Rust has existed as a stable language since 2015),
+      plus Kubernetes, Terraform, and Go.
+
+golden_response:
+  score: 55.0
+  matched_requirements: ["Rust", "Kubernetes", "Terraform", "Go"]
+  missing_requirements: ["8+ years of production Rust experience"]
+  red_flags: ["Posting requires 8+ years of production Rust experience, but Rust 1.0 only shipped in 2015 (about 9-10 years before a realistic posting date) -- this specific tenure requirement is very hard for almost any candidate to satisfy and may reflect a padded/unrealistic requirement rather than the candidate's shortfall."]
+  rationale: >
+    The candidate's skills and platform-engineering experience cover
+    Rust, Kubernetes, Terraform, and Go, but the posting's 8+ year Rust
+    tenure requirement is unusual given the language's history and is
+    flagged as a posting-side red flag rather than purely a candidate gap.
+
+expected_properties:
+  score_band: [35, 70]
+  insufficient_data: false
+  requires_red_flag: true
