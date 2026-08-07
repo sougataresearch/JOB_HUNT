@@ -12,6 +12,7 @@ from jobhunt_core.agents import (
     ats_optimization_agent,  # noqa: F401
     cover_letter_agent,  # noqa: F401
     email_generation_agent,  # noqa: F401
+    interview_prep_agent,  # noqa: F401
     job_matching_agent,  # noqa: F401
     job_search_agent,  # noqa: F401
     resume_analysis_agent,  # noqa: F401
@@ -24,6 +25,7 @@ __all__ = [
     "ats_optimization_agent",
     "cover_letter_agent",
     "email_generation_agent",
+    "interview_prep_agent",
     "job_matching_agent",
     "job_search_agent",
     "resume_analysis_agent",

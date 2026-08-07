@@ -51,3 +51,37 @@ class InterviewQuestion(BaseModel):
     question: str
     suggested_talking_points: list[str] = Field(default_factory=list)
     agent_run_id: str | None = None
+
+
+class InterviewQuestionDraft(BaseModel):
+    """One LLM-drafted question, before ``interview_id`` is known (agents.md §10, prompts.md).
+
+    Narrower than ``InterviewQuestion`` -- excludes ``id``/
+    ``interview_id``/``agent_run_id``, set by the agent, same
+    ``*Extraction``-style pattern as ``MatchScoreExtraction``.
+    """
+
+    category: QuestionCategory
+    question: str
+    suggested_talking_points: list[str] = Field(default_factory=list)
+
+
+class InterviewPrepExtraction(BaseModel):
+    """The Interview Prep Agent's LLM call output (agents.md §10)."""
+
+    questions: list[InterviewQuestionDraft] = Field(default_factory=list)
+
+
+class InterviewPrepPack(BaseModel):
+    """The full agent output: one interview plus its prepared questions (phases.md Phase 15).
+
+    Not a separate DB table -- database.md §12 persists this as
+    ``interview_questions`` rows tied to ``interview_id`` (agents.md
+    §10's own "Outputs: InterviewPrepPack (database.md §12,
+    interview_questions rows)" note); this schema is the richer
+    in-memory bundle the agent returns, the same collapsing-into-
+    existing-columns pattern ``PDFVerificationResult`` (Phase 11) used.
+    """
+
+    interview: Interview
+    questions: list[InterviewQuestion] = Field(default_factory=list)

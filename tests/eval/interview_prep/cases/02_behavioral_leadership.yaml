@@ -1,0 +1,33 @@
+case_name: behavioral_leadership
+input:
+  job_posting:
+    title: "Engineering Manager"
+    normalized_description: >
+      We are hiring an Engineering Manager to lead a growing platform
+      team, mentor engineers, and drive cross-team collaboration with
+      product and design on our roadmap. You will run the team's
+      on-call rotation, own quarterly planning, and represent
+      engineering in cross-functional leadership reviews.
+  resume_text: >
+    Jane Doe
+    Engineering Lead, Acme (2021-Present)
+    Mentored four junior engineers, two of whom were promoted within a year
+    Led cross-team collaboration between platform and product on the checkout redesign
+  match_score:
+    score: 78.0
+    rationale: "Strong overlap on leadership and cross-team collaboration."
+  interview_type: onsite
+golden_response:
+  questions:
+    - category: behavioral
+      question: "Tell me about a time you mentored a junior engineer."
+      suggested_talking_points:
+        - "Mentored four junior engineers, two of whom were promoted within a year"
+    - category: behavioral
+      question: "Describe a cross-team collaboration you led."
+      suggested_talking_points:
+        - "Led cross-team collaboration between platform and product on the checkout redesign"
+expected_properties:
+  min_questions: 2
+  categories_include: [behavioral]
+  low_grounding: false

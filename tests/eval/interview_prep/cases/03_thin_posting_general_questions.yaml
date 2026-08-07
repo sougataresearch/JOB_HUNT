@@ -1,0 +1,28 @@
+case_name: thin_posting_general_questions
+input:
+  job_posting:
+    title: "Backend Engineer"
+    normalized_description: "Backend role. Python preferred."
+  resume_text: >
+    Jane Doe
+    Backend Engineer, Acme (2021-Present)
+    Built APIs serving 1M requests/day using Python and AWS
+    Reduced deployment time by 40% by automating the release pipeline
+  match_score:
+    score: 60.0
+    rationale: "Some overlap on Python experience; posting lacks detail."
+  interview_type: phone_screen
+golden_response:
+  questions:
+    - category: role_specific
+      question: "Tell me about your experience with Python in production."
+      suggested_talking_points:
+        - "Built APIs serving 1M requests/day using Python and AWS"
+    - category: behavioral
+      question: "Describe a time you improved a team process."
+      suggested_talking_points:
+        - "Reduced deployment time by 40% by automating the release pipeline"
+expected_properties:
+  min_questions: 2
+  categories_include: [role_specific, behavioral]
+  low_grounding: true

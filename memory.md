@@ -1,6 +1,6 @@
 # Project Memory — JOB_HUNT
 
-Status: Current snapshot · Last updated: 2026-08-08 (Phase 14)
+Status: Current snapshot · Last updated: 2026-08-08 (Phase 15)
 
 This is what an AI coding agent (or a new human contributor) should
 internalize before touching this repo. It's a snapshot, not a spec —
@@ -9,16 +9,17 @@ those win; update this file to match.
 
 ## Current Status
 
-**Phases 1–14 complete** (Foundation, Configuration, Core AI/LLM
+**Phases 1–15 complete** (Foundation, Configuration, Core AI/LLM
 Provider Layer, Storage & Schemas, CV Analysis/Resume Analysis Agent,
 Skill Gap Analysis/Skill Gap Agent, Job Search/Job Search Agent +
 source connectors, Job Matching/Job Matching Agent, Ranking, ATS
 Optimization/ATS Optimization Agent, Resume Customization Agent +
 LaTeX Rendering, Cover Letter Agent, Email Generation Agent,
-Application Tracking Agent). Nine real agents exist and are
-registered: `resume_analysis`, `skill_gap`, `job_search`,
-`job_matching`, `ats_optimization`, `resume_customization`,
-`cover_letter`, `email_generation`, `application_tracking`. Ranking
+Application Tracking Agent, Interview Prep Agent). Ten real agents
+exist and are registered: `resume_analysis`, `skill_gap`,
+`job_search`, `job_matching`, `ats_optimization`,
+`resume_customization`, `cover_letter`, `email_generation`,
+`application_tracking`, `interview_prep`. Ranking
 (`orchestration/ranking.py`) is a plain deterministic function, not an
 agent (api.md §3, confirmed during Phase 9); Application Tracking is a
 real registered agent but also has no LLM call (agents.md §9 --
@@ -31,30 +32,40 @@ Letter both render real, compiling LaTeX PDFs via `DocumentRenderer`/
 `LaTeXRenderer` (`documents/renderer.py`) — this dev machine has a
 working MiKTeX install (lualatex/xelatex/pdflatex/pdftotext all
 confirmed working) — each with its own drafter→reviewer loop
-(`agents.md` §6, §7) that never lets the LLM touch contact info; Cover
-Letter Agent additionally reads `ResumeVersion.
-ats_extracted_text_path` directly to ground its reviewer's
-contradiction check in the tailored resume's actual text. Email
-Generation Agent is a single LLM call with no reviewer pass (agents.md
-§8: it only summarizes two already-approved documents) and persists
-nothing of its own. `RepositoryBundle` has 7 repos (added `documents:
+(`agents.md` §6, §7) that never lets the LLM touch contact info. Both
+Cover Letter Agent and Interview Prep Agent read `ResumeVersion.
+ats_extracted_text_path` directly (Phase 11's PDF-verification
+artifact) to ground their LLM calls in the tailored resume's actual
+text — an established reuse pattern now used twice. Email Generation
+Agent is a single LLM call with no reviewer pass (agents.md §8: it
+only summarizes two already-approved documents) and persists nothing
+of its own. `RepositoryBundle` has 7 repos (added `documents:
 DocumentRepo` in Phase 11); `DocumentRepo` also owns `cover_letters`
 CRUD (Phase 12 reused it rather than adding an 8th `RepositoryBundle`
 field). `Application.resume_version_id`/`cover_letter_id` were added
-in Phase 14 (deferred since Phase 4/11/12); `ApplicationRepo` (built
-in Phase 4, ahead of the agent that uses it) is the system of record
-every tracking-adjacent agent reads from. CLI commands so far: `setup`,
-`rank`, `outcome` (`cli/main.py`); `outcome` deliberately builds its
-own `RunContext` rather than using `build_run_context()`, since that
-helper always needs a real `LLMProvider`/API key even for this
-LLM-free agent. Next up per `implementation_order.md`/`phases.md` is
-Phase 15 (Interview Preparation — Interview Prep Agent), triggered
-conceptually by `Application.status == "interview_scheduled"`
-(agents.md §10), consuming `InterviewRepo`/`Interview`/
-`InterviewQuestion` (also already built in Phase 4). Do not write
-`jobhunt_core` source files without checking `progress_log.md` first
-for the latest open items — this section is a snapshot, not a
-substitute for it.
+in Phase 14 (deferred since Phase 4/11/12); `ApplicationRepo`/
+`InterviewRepo` (both built in Phase 4, ahead of the agents that use
+them) are the system of record every tracking-adjacent agent reads
+from. CLI commands so far: `setup`, `rank`, `outcome`, `interview`
+(`cli/main.py`); `outcome` deliberately builds its own `RunContext`
+rather than using `build_run_context()`, since that helper always
+needs a real `LLMProvider`/API key even for that LLM-free agent —
+`interview` uses `build_run_context()` normally since Interview Prep
+does call an LLM. Since no event-driven orchestrator exists yet
+(agent-by-agent CLI invocation only), both `/outcome` and
+`/interview`'s status-trigger conditions (agents.md §9/§10) are
+enforced explicitly in the CLI layer, not automatically. Golden-file
+eval suites exist for four agents now: `tests/eval/{skill_gap,
+job_matching,interview_prep}/` plus Job Matching's regression suite;
+Resume Customization/Cover Letter use direct fixture tests instead
+(real LaTeX compiles don't fit the golden-file YAML shape). Next up
+per `implementation_order.md`/`phases.md` is Phase 16 (Career
+Analytics — Career Analytics Agent), a mostly-deterministic
+aggregation agent (agents.md §11) reading `applications`/
+`application_events`/`job_postings`, feeding `jobhunt report` (HTML
+dashboard, later in Phase 16). Do not write `jobhunt_core` source
+files without checking `progress_log.md` first for the latest open
+items — this section is a snapshot, not a substitute for it.
 
 ## Project Philosophy
 

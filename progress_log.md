@@ -1379,3 +1379,97 @@ to Phase 18) plus `run_outcome()`'s `engine.dispose()` gap (joining
 
 **Not yet done:** commit/push for this phase — next action. Phase 15
 (Interview Preparation) has not started.
+
+## 2026-08-08 — Phase 15 (Interview Prep Agent) complete
+
+**Built, per `tasks.md` T15.1:**
+- `schemas/interview.py` gained `InterviewQuestionDraft` (LLM output
+  per question, narrower than `InterviewQuestion` -- no `id`/
+  `interview_id`/`agent_run_id`, same `*Extraction`-style pattern as
+  `MatchScoreExtraction`), `InterviewPrepExtraction` (the LLM call's
+  actual output: a batch of drafts), and `InterviewPrepPack` (the full
+  agent output -- one `Interview` plus its `InterviewQuestion` rows,
+  collapsing into `interview_questions` the same way
+  `PDFVerificationResult` collapsed into `ResumeVersion`'s columns in
+  Phase 11, since database.md §12 has no separate "prep pack" table).
+- `prompts/library/interview/prepare/1.0.md` and
+  `InterviewPrepAgent`: single LLM call (agents.md §10 Retry logic:
+  "Shared LLM retry policy only," no reviewer pass), reads
+  `ResumeVersion.ats_extracted_text_path` directly for the resume's
+  actual text (same reuse of Phase 11's PDF-verification artifact
+  Cover Letter Agent established in Phase 12).
+- `cli/commands/interview.py` + `.claude/commands/interview.md` +
+  `cli/main.py` wiring (`jobhunt interview <job_posting_id>
+  <interview_type>`) -- phases.md Phase 15's "/interview command
+  trigger on status change" deliverable. Since no event-driven
+  orchestrator exists yet (`AgentResult`'s own docstring: "the CLI
+  calls agents directly for now"), agents.md §10's trigger condition
+  (`Application.status == "interview_scheduled"`) is enforced
+  explicitly by this command before the agent ever runs, rather than
+  automatically by a status-change watcher -- matching tasks.md
+  T15.1's own "(or on command)" allowance, the same choice already
+  made for `/outcome` in Phase 14.
+
+**A real, disclosed threshold choice, not a documented one:**
+agents.md §10 Failure handling names "posting text very short" as its
+example of insufficient grounding data but specifies no cutoff --
+`_MIN_GROUNDING_CHARS = 200` is this implementation's own choice,
+documented inline, same pattern as `CoverLetterAgent`'s
+`_MIN_POSTING_DETAILS`. Below it, the drafter is instructed to prefer
+general-category questions and the caller gets an explicit warning
+(no schema field exists on `InterviewQuestion` for this --
+database.md §12 defines none -- so it's surfaced via
+`AgentResult.warnings`, the same no-new-field precedent
+`ATSOptimizationAgent` already established for an equivalent
+low-confidence signal).
+
+**Chose the golden-file eval pattern over the fixture-test pattern,
+and said why:** testing.md §3 explicitly lists Interview Prep among
+the AI Evaluation agents needing golden-file tests, and phases.md
+Phase 15's own AC says "golden-file tests pass" (not "fixture tests").
+Unlike Resume Customization/Cover Letter (which needed direct
+`_ScriptedLLM` fixture tests because of the real-LaTeX-compile +
+multi-call drafter->reviewer loop), Interview Prep is a single
+structured LLM call with no compile step -- the same shape as Job
+Matching/Skill Gap, both already using
+`tests/eval/<agent>/cases/*.yaml`. Built
+`tests/eval/interview_prep/` with 3 cases (matching Skill Gap's
+count, not Job Matching's ~10 -- the "~10 labeled pairs" language in
+agents.md §4 Metrics is Job-Matching-specific regression-suite
+sizing, not a blanket requirement for every eval agent), including a
+`_grounded()` word-overlap check (ported from
+`tests/eval/job_matching/test_job_matching_eval.py`) proving every
+`suggested_talking_points` entry shares real words with the resume or
+posting text -- operationalizing "traceable back to specific bullet
+points" as an actual assertion, not just prompt-text wishful thinking.
+One case deliberately exercises the thin-grounding path
+(`low_grounding: true` in `expected_properties`).
+
+**A real bug caught while writing the eval cases, not in review:**
+one case's `interview_type: behavioral` was accepted by YAML but
+rejected by `InterviewType(...)` at runtime -- `behavioral` is a
+`QuestionCategory` value, not an `InterviewType` one (the two enums
+share no members by design: interview_type is `phone_screen`/
+`technical`/`onsite`/`final`, category is `technical`/`behavioral`/
+`company`/`role_specific`). Fixed by using a valid `InterviewType`
+(`onsite`) for that case.
+
+**Verified, not assumed:** `ruff check`, `ruff format --check`, `mypy
+--strict` (81 source files, `cli/` included), full `pytest` (283
+passed, up from 271 -- 97% coverage maintained).
+`pre-commit run --all-files` hit the familiar ruff-version-drift
+oscillation on 3 files on the first run; stable on the second, same
+resolution as every prior occurrence.
+
+**Still open:** everything carried from Phase 14 (license
+confirmation, Ollama live-server smoke test, real LLM pricing, native
+system-prompt support on `LLMProvider`, `populate_by_name=True` audit,
+the recorded-cassette eval harness, Greenhouse rate-limit enforcement,
+optional LLM-assisted manual-paste normalization, `agent_runs`/
+`prompt_versions` unbuilt, Windows LaTeX setup documentation deferred
+to Phase 18, `run_setup()`/`run_rank()`/`run_outcome()`'s missing
+`engine.dispose()`) -- `run_interview()` now shares that same
+`engine.dispose()` gap too, same inherited pattern as `run_outcome()`.
+
+**Not yet done:** commit/push for this phase — next action. Phase 16
+(Career Analytics) has not started.

@@ -1,0 +1,32 @@
+case_name: technical_backend_role
+input:
+  job_posting:
+    title: "Backend Engineer"
+    normalized_description: >
+      We are hiring a Backend Engineer to build and scale distributed
+      systems using Python, PostgreSQL, and AWS. You will own service
+      reliability and partner closely with the platform team on
+      infrastructure rollouts and on-call response.
+  resume_text: >
+    Jane Doe
+    Backend Engineer, Acme (2021-Present)
+    Built APIs serving 1M requests/day using Python and AWS
+    Migrated the primary datastore to PostgreSQL with zero downtime
+  match_score:
+    score: 85.0
+    rationale: "Strong overlap on Python/AWS/PostgreSQL experience."
+  interview_type: technical
+golden_response:
+  questions:
+    - category: technical
+      question: "Walk me through how you scaled APIs to handle 1M requests/day."
+      suggested_talking_points:
+        - "Built APIs serving 1M requests/day using Python and AWS"
+    - category: technical
+      question: "Tell me about the PostgreSQL migration you led."
+      suggested_talking_points:
+        - "Migrated the primary datastore to PostgreSQL with zero downtime"
+expected_properties:
+  min_questions: 2
+  categories_include: [technical]
+  low_grounding: false
