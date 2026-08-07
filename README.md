@@ -7,10 +7,15 @@ interviews, and tracks every application — all running on your own
 machine, driven through [Claude Code](https://claude.com/claude-code)
 commands, with no mandatory cloud backend beyond your chosen LLM API.
 
-This repository is currently in the **architecture and documentation
-phase**. No application code has been written yet — see
-[`phases.md`](phases.md) and [`implementation_order.md`](implementation_order.md)
-for what gets built, and in what order.
+**Phases 1–15 of 18 are complete** — ten real, tested agents
+(`resume_analysis`, `skill_gap`, `job_search`, `job_matching`,
+`ats_optimization`, `resume_customization`, `cover_letter`,
+`email_generation`, `application_tracking`, `interview_prep`), a
+working CLI (`setup`, `rank`, `outcome`, `interview`), and a
+compiling LaTeX rendering pipeline. See [`phases.md`](phases.md) and
+[`implementation_order.md`](implementation_order.md) for what's built
+and what's left, and [`progress_log.md`](progress_log.md) for the
+detailed, dated build history.
 
 ## Why this exists
 
@@ -46,8 +51,31 @@ auditable AI agents you can inspect, override, and extend.
 
 ## Status
 
-Architecture design in progress. See [`progress_log.md`](progress_log.md)
-for the latest entry before starting any substantive work.
+**Phases 1–15 complete** (Foundation through Interview Preparation).
+Still open: Career Analytics (Phase 16), Testing & Quality Hardening
+(Phase 17), and Deployment & Open-Source Release (Phase 18) — see
+[`phases.md`](phases.md) for the full roadmap and
+[`memory.md`](memory.md) for a current-state snapshot. Check
+[`progress_log.md`](progress_log.md) for the latest dated entry before
+starting any substantive work — it carries forward every known open
+item and honest limitation (e.g. no real-LLM eval harness yet; every
+existing eval test proves agent plumbing against a scripted response,
+not real model quality).
+
+### What works today
+
+- `python -m cli.main setup <cv_file>` — parse a CV into a
+  `CandidateProfile`.
+- `python -m cli.main rank --page 1` — a ranked, paginated shortlist of
+  scored postings.
+- `python -m cli.main outcome <job_posting_id> <status>` — record an
+  application status transition.
+- `python -m cli.main interview <job_posting_id> <interview_type>` —
+  generate grounded interview prep questions once an application is
+  `interview_scheduled`.
+- Every agent above `setup`/`rank`/`outcome`/`interview` is directly
+  callable via its `Agent.run(input, ctx)` interface (`api.md` §0);
+  end-to-end orchestration across the full pipeline is Phase 17 work.
 
 ## License
 

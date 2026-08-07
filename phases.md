@@ -1,6 +1,12 @@
 # Development Phases — JOB_HUNT
 
-Status: Draft v1.0 · Last updated: 2026-08-02
+Status: Draft v1.0 · Last updated: 2026-08-02 · Progress last marked: 2026-08-08
+
+**Phases 1–15 of 18 are complete** (✅ below); 16–18 (⬜) are not yet
+started. Each phase's `**Status:**` line is a pointer, not the record
+of truth — see `progress_log.md` for the detailed, dated build history
+behind each completed phase, and `memory.md` for a current-state
+snapshot.
 
 This is the **authoritative phase roadmap and scope boundary list**. Do
 not implement beyond the phase actually being worked on
@@ -15,6 +21,8 @@ with fine-grained dependencies lives in
 ---
 
 ## Phase 1 — Foundation
+
+**Status:** ✅ Complete — see `progress_log.md`.
 
 **Objectives:** Stand up the repository skeleton so every later phase
 has somewhere correct to put its code.
@@ -43,6 +51,8 @@ CI is green on a trivial PR.
 
 ## Phase 2 — Configuration
 
+**Status:** ✅ Complete — see `progress_log.md`.
+
 **Objectives:** Establish the single, validated source of truth for all
 settings before any module that needs config is built.
 
@@ -62,6 +72,8 @@ unit tests cover default → local override → env-var precedence.
 ---
 
 ## Phase 3 — Core AI (LLM Provider Layer)
+
+**Status:** ✅ Complete — see `progress_log.md`.
 
 **Objectives:** Build the provider-agnostic LLM access layer every agent
 will depend on (`decisions.md` ADR-0003).
@@ -84,6 +96,8 @@ live network calls.
 
 ## Phase 4 — Storage & Schemas
 
+**Status:** ✅ Complete — see `progress_log.md`.
+
 **Objectives:** Define the shared data vocabulary (`schemas/`) and
 persistence layer (`storage/`) that every agent reads/writes through.
 
@@ -105,6 +119,8 @@ read it back, fields match) passes for every model; Alembic
 
 ## Phase 5 — CV Analysis (Resume Analysis Agent)
 
+**Status:** ✅ Complete — see `progress_log.md`.
+
 **Objectives:** Turn a raw CV file into a structured `CandidateProfile`.
 
 **Deliverables:** PDF/DOCX/Markdown parsers (`documents/parsers/`),
@@ -125,6 +141,8 @@ sparse (returns explicit "not found," never invents).
 
 ## Phase 6 — Skill Gap Analysis (Skill Gap Agent)
 
+**Status:** ✅ Complete — see `progress_log.md`.
+
 **Objectives:** Compare a `CandidateProfile` against a target role/
 market to identify missing or weak skills.
 
@@ -141,6 +159,8 @@ advice; golden-file tests pass.
 ---
 
 ## Phase 7 — Job Search (Job Search Agent + Source Connectors)
+
+**Status:** ✅ Complete — see `progress_log.md`.
 
 **Objectives:** Source job postings from multiple channels with
 deduplication.
@@ -163,6 +183,8 @@ with a simulated always-failing source.
 
 ## Phase 8 — Job Matching (Job Matching Agent)
 
+**Status:** ✅ Complete — see `progress_log.md`.
+
 **Objectives:** Score compatibility between a `CandidateProfile` and a
 `JobPosting`, with rationale.
 
@@ -182,6 +204,8 @@ tolerance across prompt changes (`testing.md`).
 ---
 
 ## Phase 9 — Ranking
+
+**Status:** ✅ Complete — see `progress_log.md`.
 
 **Objectives:** Turn a batch of `MatchScore`s into a prioritized,
 human-reviewable shortlist.
@@ -203,6 +227,8 @@ paginated for progressive disclosure (`design.md` §2), and stable
 
 ## Phase 10 — ATS Optimization (ATS Optimization Agent)
 
+**Status:** ✅ Complete — see `progress_log.md`.
+
 **Objectives:** Identify keyword/formatting gaps between a
 `CandidateProfile`/CV draft and a `JobPosting` that would hurt automated
 parsing.
@@ -222,6 +248,8 @@ rule); tested against fixtures with known gaps.
 ---
 
 ## Phase 11 — Resume Customization (Resume Customization Agent + LaTeX Rendering)
+
+**Status:** ✅ Complete — see `progress_log.md`.
 
 **Objectives:** Produce a tailored, compiled, ATS-verified CV PDF for a
 specific posting.
@@ -245,6 +273,8 @@ input CV content does not break compilation (escaping tested).
 
 ## Phase 12 — Cover Letters (Cover Letter Agent)
 
+**Status:** ✅ Complete — see `progress_log.md`.
+
 **Objectives:** Generate a tailored cover letter referencing the
 specific posting and the tailored resume.
 
@@ -263,6 +293,8 @@ vibes — `testing.md`); no content contradicts the tailored resume.
 
 ## Phase 13 — Email Automation (Email Generation Agent)
 
+**Status:** ✅ Complete — see `progress_log.md`.
+
 **Objectives:** Draft the application submission email.
 
 **Deliverables:** Email Generation Agent + prompt, `DraftEmail` schema,
@@ -280,6 +312,8 @@ action.
 ---
 
 ## Phase 14 — Application Tracking (Application Tracking Agent)
+
+**Status:** ✅ Complete — see `progress_log.md`.
 
 **Objectives:** Persist and manage the lifecycle of every application.
 
@@ -302,6 +336,8 @@ matching hand-computed aggregates on fixture data.
 
 ## Phase 15 — Interview Preparation (Interview Prep Agent)
 
+**Status:** ✅ Complete — see `progress_log.md`.
+
 **Objectives:** Generate likely interview questions and talking points
 once an application reaches "interview scheduled."
 
@@ -320,6 +356,8 @@ generic interview advice; golden-file tests pass.
 
 ## Phase 16 — Career Analytics (Career Analytics Agent)
 
+**Status:** ⬜ Not started.
+
 **Objectives:** Aggregate application history into actionable trends.
 
 **Deliverables:** Career Analytics Agent, `AnalyticsReport` schema,
@@ -336,6 +374,8 @@ and renders offline with no network calls.
 ---
 
 ## Phase 17 — Testing & Quality Hardening
+
+**Status:** ⬜ Not started.
 
 **Objectives:** Close coverage gaps and stabilize the full pipeline
 before any public release, per `testing.md`.
@@ -357,6 +397,8 @@ with a documented reason.
 ---
 
 ## Phase 18 — Deployment & Open-Source Release
+
+**Status:** ⬜ Not started.
 
 **Objectives:** Make the repository genuinely usable by someone who is
 not the maintainer.
