@@ -832,3 +832,83 @@ optional LLM-assisted manual-paste normalization).
 
 **Not yet done:** commit/push for this phase — next action. Phase 9
 (Ranking) has not started.
+
+## 2026-08-07 — Phase 9 (Ranking) complete
+
+**Resolved a carried-forward open item:** "whether Ranking ends up as
+a mode of the Job Matching Agent or a fully separate agent" (open
+since the 2026-08-02 entry, phases.md Phase 9's own note flagged it
+for implementation time). Confirmed rather than re-litigated: api.md
+§3 already specified a plain `Ranker` Protocol / pure function during
+the original doc phase, not an `Agent` — consistent with rules.md
+§Performance Guidelines ("no agent should require an LLM call for
+something a deterministic function can compute"). No new ADR needed;
+api.md §3 already *was* the decision, this phase just confirmed
+implementation surfaced no reason to revisit it.
+
+**Built, per `tasks.md` T9.1:** `orchestration/ranking.py` — `rank()`
+(pure function, no LLM/DB/RunContext), `latest_per_posting()` (collapses
+`match_scores`' re-scoring history, database.md §6, to one entry per
+posting so a re-scored posting isn't double-counted), `paginate()`
+(design.md §2 progressive disclosure, default page size 10 matching
+that section's own example); `schemas/match.py`'s `RankedPosting`
+(api.md §3); `cli/commands/rank.py` (`jobhunt rank`) and
+`.claude/commands/rank.md`, both mirroring Phase 5's `setup`
+thin-wrapper pattern (ADR-0004) exactly.
+
+**A real, disclosed deviation from api.md §3's draft, not silently
+patched over:** the draft's tie-break was "`posted_at` descending" —
+a `JobPosting` field. But `Ranker.rank()` only receives
+`list[MatchScore]` (api.md §3's own signature), and joining against
+`job_postings` to reach `posted_at` would require DB access inside
+`rank()`, contradicting api.md §3's explicit "pure function" design
+intent one paragraph earlier in the same section. Used
+`MatchScore.created_at` (already on hand) instead — same doc
+reconciled with a comment explaining the substitution, not silently
+changed. Python's `sorted()` being stable means the core phases.md
+acceptance criterion ("same inputs → same order") holds regardless of
+which tie-break field is used.
+
+**Verified, not assumed:** `ruff check`, `ruff format --check`
+(including a second ruff-version-drift oscillation, same category as
+Phase 6's import-order one — local venv ruff 0.16.1 and the
+pre-commit-pinned v0.6.9 disagree on multi-line `assert`-with-message
+wrapping style; resolved the same way, by treating the pinned
+pre-commit hook as authoritative and letting it re-format after the
+local run, confirmed stable by re-running `pre-commit run --all-files`
+twice back to back with no further changes), `mypy --strict` (68
+source files), full `pytest` (191 passed, up from 175 — 96% coverage,
+up from 95%), `pre-commit run --all-files` (all 7 hooks green).
+Dedicated tests for both Phase 9 acceptance criteria: stability
+(`test_rank_is_stable_for_equal_scores`, same input list ranked twice
+produces identical order) and pagination
+(`test_paginate_returns_correct_slice`,
+`test_paginate_default_page_size_is_ten`,
+`test_paginate_past_the_end_returns_empty`).
+
+**Honest note, not a new limitation:** `run_setup()` (Phase 5) and now
+`run_rank()` both close their SQLAlchemy session in a `finally` block
+but never call `engine.dispose()` — a pre-existing pattern, not
+something Phase 9 introduced; `test_run_rank_end_to_end_with_scratch_db`
+adds one more instance of the same already-accepted
+`ResourceWarning: unclosed database` noise seen in every phase's test
+run since Phase 4. Not fixed here (out of Phase 9's scope, no doc asks
+for connection-pool lifecycle hardening) — flagged below instead.
+
+**No architecture.md change needed this phase:** `ranking.py` only
+uses `schemas/` (already an `orchestration/` dependency); the CLI
+command only uses already-existing `storage/`/`config/` surfaces.
+
+**Still open:** everything carried from Phase 8 (license confirmation,
+Windows LaTeX docs, Ollama live-server smoke test, real LLM pricing,
+native system-prompt support on `LLMProvider`, `populate_by_name=True`
+audit, the recorded-cassette eval harness, Greenhouse rate-limit
+enforcement, optional LLM-assisted manual-paste normalization). Added:
+`run_setup()`/`run_rank()`'s missing `engine.dispose()` in their
+`finally` blocks (cosmetic — a `ResourceWarning`, not a real leak
+within a single CLI-process lifetime — but worth a real fix before
+these code paths get reused by more commands).
+
+**Not yet done:** commit/push for this phase — next action, then
+Phases 7–9 are all complete. Phase 10 (ATS Optimization) has not
+started.

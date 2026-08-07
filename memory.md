@@ -1,6 +1,6 @@
 # Project Memory — JOB_HUNT
 
-Status: Current snapshot · Last updated: 2026-08-05
+Status: Current snapshot · Last updated: 2026-08-07
 
 This is what an AI coding agent (or a new human contributor) should
 internalize before touching this repo. It's a snapshot, not a spec —
@@ -9,15 +9,19 @@ those win; update this file to match.
 
 ## Current Status
 
-**Phases 1–6 complete** (Foundation, Configuration, Core AI/LLM
+**Phases 1–9 complete** (Foundation, Configuration, Core AI/LLM
 Provider Layer, Storage & Schemas, CV Analysis/Resume Analysis Agent,
-Skill Gap Analysis/Skill Gap Agent). Two real agents exist and are
-registered: `resume_analysis` and `skill_gap`. Next up per
-`implementation_order.md`/`phases.md` is Phase 7 (Job Search — source
-connector interface, first two connectors, Job Search Agent + dedup).
-Do not write `jobhunt_core` source files without checking
-`progress_log.md` first for the latest open items — this section is a
-snapshot, not a substitute for it.
+Skill Gap Analysis/Skill Gap Agent, Job Search/Job Search Agent +
+source connectors, Job Matching/Job Matching Agent, Ranking). Four
+real agents exist and are registered: `resume_analysis`, `skill_gap`,
+`job_search`, `job_matching`. Ranking (`orchestration/ranking.py`) is
+a plain deterministic function, not an agent (api.md §3, confirmed
+during Phase 9). Two source connectors exist: `greenhouse` (public
+Job Board API) and `manual_import` (ToS fallback). Next up per
+`implementation_order.md`/`phases.md` is Phase 10 (ATS Optimization —
+ATS Optimization Agent). Do not write `jobhunt_core` source files
+without checking `progress_log.md` first for the latest open items —
+this section is a snapshot, not a substitute for it.
 
 ## Project Philosophy
 

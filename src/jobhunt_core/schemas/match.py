@@ -1,4 +1,4 @@
-"""MatchScore schema (database.md §6)."""
+"""MatchScore and Ranking API schemas (database.md §6, api.md §3)."""
 
 from __future__ import annotations
 
@@ -42,3 +42,15 @@ class MatchScoreExtraction(BaseModel):
     missing_requirements: list[str] = Field(default_factory=list)
     red_flags: list[str] = Field(default_factory=list)
     rationale: str
+
+
+class RankedPosting(BaseModel):
+    """One entry in a ranked shortlist (api.md §3 Ranking API, Phase 9).
+
+    ``job_id`` names api.md §3's field as-documented (``MatchScore``
+    itself already carries the same value as ``job_posting_id``).
+    """
+
+    job_id: str
+    score: MatchScore
+    rank: int
