@@ -123,7 +123,7 @@ rationale per the MatchScore schema.
 ```yaml
 name: analyze
 version: "1.0"
-output_schema: ATSReport
+output_schema: ATSGapClassification
 ```
 
 **System:** You are an ATS-compatibility analyst. Given keyword gaps
@@ -146,8 +146,14 @@ JOB_POSTING:
 CANDIDATE_KEYWORD_GAPS (computed deterministically):
 {{ raw_keyword_gaps }}
 
-Classify each gap and return per the ATSReport schema.
+Classify each gap and return per the ATSGapClassification schema.
 ```
+
+`output_schema: ATSGapClassification`, not `ATSReport` (Phase 10
+reconciliation): the model has no basis for `id`/`job_posting_id`/
+`profile_id`/`agent_run_id`/`created_at`/`formatting_warnings` — the
+agent fills those in, same narrowing already applied to Resume
+Analysis (Phase 5) and Job Matching (Phase 8).
 
 ---
 

@@ -912,3 +912,96 @@ these code paths get reused by more commands).
 **Not yet done:** commit/push for this phase — next action, then
 Phases 7–9 are all complete. Phase 10 (ATS Optimization) has not
 started.
+
+## 2026-08-08 — Phase 10 (ATS Optimization — ATS Optimization Agent) complete
+
+**Context:** `ATSReport`, its SQLAlchemy model, and `ATSRepo` were
+already fully built in Phase 4 (one of the original 6
+`RepositoryBundle` repos) — `tasks.md` T10.1's "Expected files" listing
+`schemas/ats.py` as if new was stale; this phase only added the agent,
+the prompt, and `ATSGapClassification` (the schema addition actually
+needed).
+
+**Built, per `tasks.md` T10.1, the two-step design agents.md §5 Tools
+specifies:** a **deterministic** keyword-gap extraction step (no LLM,
+never retried — design.md §11, nothing transient about it) in
+`ats_optimization_agent.py`: `_candidate_keywords()` pulls
+capitalized/tech-shaped tokens out of the posting text (a disclosed
+heuristic, not full NLP), `_missing_keywords()` checks which of those
+are absent from the candidate's flattened profile text. Only if that
+step finds actual gaps does the **LLM judgment** step run — the
+`analyze` prompt (`prompts/library/ats/analyze/1.0.md`), which
+classifies each already-found gap as SUPPORTED (real experience,
+worded differently) or UNSUPPORTED (no backing, must never be
+fabricated — rules.md AI Coding Rule 1), explicitly instructed to
+"classify, don't discover" and to prefer UNSUPPORTED when in doubt.
+`ATSGapClassification` (narrower than `ATSReport`, same
+`CandidateProfileExtraction`/`MatchScoreExtraction` pattern from
+Phases 5/8) is what the LLM actually returns.
+
+**Two real bugs caught by the fixture tests before they shipped, not
+after — this is exactly what tasks.md's "fixture-tested against known
+keyword-gap cases" checklist item is for:**
+- The keyword regex's character class includes `.` (needed for terms
+  like "Node.js"), which also greedily swallowed a sentence-ending
+  period — `"...with Kubernetes."` was extracted as the token
+  `"Kubernetes."`, never matching profile text that (correctly) has no
+  trailing period, so it was never recognized as "already covered"
+  even when it should have been. Fixed by trimming trailing
+  punctuation the character class would never legitimately end a real
+  token with.
+- Sentence-starting capitalized filler words common in job-posting
+  prose ("Requires...", "Experienced with...", "Seeking...") were
+  being extracted as false-positive keyword candidates, since they
+  weren't in the initial stopword list. A first fix attempt (skip any
+  capitalized word at a sentence boundary) was tried and *reverted*
+  before shipping, once a second test fixture showed it also
+  incorrectly excludes a real keyword that legitimately opens a
+  sentence ("PostgreSQL is a plus.") — no positional heuristic can
+  tell those two cases apart. Fixed the honest way instead: expanded
+  the stopword list with common, genuinely job-posting-specific filler
+  ("requires," "seeking," "responsible," "preferred," etc.) rather
+  than a clever rule that trades one false-positive class for a
+  false-negative one.
+
+**Honest limitation, stated directly (not hidden behind the fixes
+above):** the keyword-extraction heuristic is disclosed in its own
+docstring as imperfect — it still misses a genuine keyword the posting
+happens to write in lowercase, and the stopword list can never be
+fully exhaustive. Both failure modes are recoverable, not silent: this
+function only surfaces *candidates* for the LLM judgment step, never a
+final verdict, and a missed/over-included candidate doesn't corrupt
+`ATSReport`'s supported/unsupported distinction, just narrows or
+widens the gap set the LLM gets to judge.
+
+**agents.md §5's "explicit low-confidence report" failure handling,
+implemented without a schema change:** `ATSReport` has no confidence
+field (Phase 4's schema, not revisited here without strong reason) —
+an empty posting or a posting with zero keyword gaps returns an empty
+`ATSReport` with the reasoning surfaced via `AgentResult.warnings`
+instead, and (rules.md §Performance Guidelines) skips the LLM call
+entirely in both cases — verified by a test using a fake `LLMProvider`
+whose `complete_structured` raises `AssertionError` if ever called, not
+just an assertion that the output looked empty.
+
+**Verified, not assumed:** `ruff check`, `ruff format --check`, `mypy
+--strict` (69 source files), full `pytest` (202 passed, up from 191 —
+96% coverage). 11 dedicated tests: 5 for the deterministic extraction
+functions against known fixtures (the tasks.md checklist item), 6 for
+agent-level plumbing including the two no-LLM-call short-circuit paths
+and the supported-vs-unsupported distinction itself (phases.md Phase
+10's acceptance criterion, directly).
+
+**No architecture.md change needed this phase:** `ATSOptimizationAgent`
+only touches modules already listed as `agents/` dependencies
+(`schemas/`, `prompts/`) — checked, found accurate as-is.
+
+**Still open:** everything carried from Phase 9 (license confirmation,
+Windows LaTeX docs, Ollama live-server smoke test, real LLM pricing,
+native system-prompt support on `LLMProvider`, `populate_by_name=True`
+audit, the recorded-cassette eval harness, Greenhouse rate-limit
+enforcement, optional LLM-assisted manual-paste normalization,
+`run_setup()`/`run_rank()`'s missing `engine.dispose()`).
+
+**Not yet done:** commit/push for this phase — next action. Phase 11
+(Resume Customization) has not started.
