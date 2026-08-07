@@ -87,10 +87,19 @@ class AgentConfig(BaseModel):
 
 
 class SourceConfig(BaseModel):
-    """One entry under ``sources`` in ``config/sources.yaml``."""
+    """One entry under ``sources`` in ``config/sources.yaml``.
+
+    ``boards`` is Greenhouse-specific (Phase 7, tasks.md T7.2): the
+    Greenhouse Job Board API is per-company (no cross-company keyword
+    search), so the user configures which companies' boards to poll —
+    left empty and ignored by sources that don't need it (e.g.
+    ``manual_import``), same pattern as ``AgentConfig.model`` being
+    unused by non-LLM agents.
+    """
 
     enabled: bool = True
     rate_limit_per_min: int | None = None
+    boards: list[str] = Field(default_factory=list)
 
 
 def _read_yaml(path: Path) -> dict[str, Any]:

@@ -1,5 +1,9 @@
 # Job source connector configuration (config.md §Source Configuration).
 # Additional sources are added per phases.md Phase 7 / roadmap.md.
 sources:
-  greenhouse: { enabled: true, rate_limit_per_min: 30 }
+  # boards: Greenhouse Job Board API is per-company (no cross-company
+  # keyword search) -- customize this list to companies you're
+  # targeting. "gitlab" is a real, public Greenhouse board token kept
+  # here only as a working illustration, not a recommendation.
+  greenhouse: { enabled: true, rate_limit_per_min: 30, boards: ["gitlab"] }
   manual_import: { enabled: true }

@@ -8,8 +8,9 @@ list below, never left to be found by a filesystem walk.
 """
 
 from jobhunt_core.agents import (
+    job_search_agent,  # noqa: F401
     resume_analysis_agent,  # noqa: F401
     skill_gap_agent,  # noqa: F401
 )
 
-__all__ = ["resume_analysis_agent", "skill_gap_agent"]
+__all__ = ["job_search_agent", "resume_analysis_agent", "skill_gap_agent"]

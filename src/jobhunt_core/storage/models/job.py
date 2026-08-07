@@ -1,13 +1,13 @@
-"""Company and JobPosting SQLAlchemy models (database.md §4, §5)."""
+"""Company, JobPosting, and SearchRun SQLAlchemy models (database.md §4, §5, §17)."""
 
 from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from jobhunt_core.storage.models.base import Base, TimestampMixin, UUIDPKMixin
+from jobhunt_core.storage.models.base import Base, TimestampMixin, UUIDPKMixin, utcnow
 
 
 class CompanyModel(UUIDPKMixin, TimestampMixin, Base):
@@ -21,12 +21,25 @@ class CompanyModel(UUIDPKMixin, TimestampMixin, Base):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
+class SearchRunModel(UUIDPKMixin, Base):
+    """The ``search_runs`` table (database.md §17) -- one row per Job Search Agent run."""
+
+    __tablename__ = "search_runs"
+
+    user_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    query: Mapped[dict[str, object]] = mapped_column(JSON)
+    sources_queried: Mapped[list[str]] = mapped_column(JSON, default=list)
+    postings_found: Mapped[int] = mapped_column(Integer, default=0)
+    postings_deduped_new: Mapped[int] = mapped_column(Integer, default=0)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
 class JobPostingModel(UUIDPKMixin, TimestampMixin, Base):
     """The ``job_postings`` table.
 
     Unique on ``(source, source_id)`` -- the primary dedup key
-    (database.md §5, agents.md §3 Job Search Agent). ``search_run_id``
-    is not yet a column (added in Phase 7 once ``search_runs`` exists).
+    (database.md §5, agents.md §3 Job Search Agent).
     """
 
     __tablename__ = "job_postings"
@@ -46,3 +59,6 @@ class JobPostingModel(UUIDPKMixin, TimestampMixin, Base):
     normalized_description: Mapped[str] = mapped_column(Text, default="")
     posted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     discovered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    search_run_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("search_runs.id"), nullable=True
+    )

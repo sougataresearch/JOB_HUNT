@@ -2,8 +2,7 @@
 
 Subtypes are added by the phase that first needs them (rules.md AI
 Coding Rule 2), each subclassing ``JobHuntError`` defined here.
-Remaining subtypes (``SourceFetchError``, ``RenderError``, ...) arrive
-in later phases.
+Remaining subtypes (``RenderError``, ...) arrive in later phases.
 """
 
 from __future__ import annotations
@@ -65,4 +64,13 @@ class StorageError(JobHuntError):
 
     E.g. saving/updating a row by id that does not exist (design.md
     §10's typed exception hierarchy).
+    """
+
+
+class SourceFetchError(JobHuntError):
+    """Raised when a ``JobSource`` fails to fetch/parse postings (api.md §2).
+
+    Caught per-source by the Job Search Agent, not per-batch (design.md
+    §10 "per-item isolation in batch operations") — one failing source
+    never aborts the other sources' results.
     """

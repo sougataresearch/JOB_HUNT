@@ -41,16 +41,27 @@ Code.
 
 ```
 jobhunt_core/
-├── agents/          → depends on: llm/, prompts/, storage/, schemas/, documents/
+├── agents/          → depends on: llm/, prompts/, storage/, schemas/, documents/, sources/
 ├── llm/             → depends on: config/  (no dependency on agents/)
 ├── storage/         → depends on: schemas/ (no dependency on agents/ or llm/)
 ├── documents/       → depends on: schemas/, storage/ (LaTeX/Markdown rendering; CV parsers)
-├── sources/         → depends on: schemas/, config/ (job board connectors)
+├── sources/         → depends on: schemas/, config/, documents/ (job board connectors;
+│                      documents/ only for ManualImportSource's file-to-text reuse)
 ├── prompts/         → depends on: nothing (pure templates + loader)
 ├── schemas/         → depends on: nothing (Pydantic models — the shared vocabulary)
-├── orchestration/   → depends on: agents/, schemas/, storage/, config/, llm/
+├── orchestration/   → depends on: agents/, schemas/, storage/, config/, llm/, sources/
 └── config/          → depends on: nothing
 ```
+
+(`agents/` gaining `sources/` was already drawn correctly in §7's
+graph below (`sources --> agents`) but missing from this prose table
+— the same category of omission Phase 5 already fixed twice here, now
+a third instance caught while wiring the Job Search Agent (Phase 7):
+`JobSource.search()` (api.md §2) takes a `RunContext`, which
+`agents/base.py` defines, so `sources/base.py` references it under a
+`TYPE_CHECKING` guard only — never a runtime import — keeping the
+actual runtime edge one-directional (`agents/` → `sources/`), matching
+this table and §7's graph.)
 
 (`agents/` gained `documents/` once the Resume Analysis Agent needed
 `documents/parsers/` for CV ingestion, and `orchestration/` gained
@@ -285,7 +296,9 @@ graph TD
     storage --> documents
     prompts --> agents
     documents --> agents
+    documents --> sources
     sources --> agents
+    sources --> orchestration
     agents --> orchestration
     orchestration --> cli
     orchestration --> claude_commands[".claude/commands"]

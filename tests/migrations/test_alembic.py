@@ -25,6 +25,7 @@ _EXPECTED_TABLES = {
     "match_scores",
     "interviews",
     "interview_questions",
+    "search_runs",
 }
 
 
@@ -61,3 +62,40 @@ def test_downgrade_base_drops_every_table(alembic_config: Config, tmp_path: Path
 
     tables = _table_names(tmp_path)
     assert not (_EXPECTED_TABLES & tables)
+
+
+def test_0002_adds_search_run_id_fk_to_job_postings(alembic_config: Config, tmp_path: Path) -> None:
+    """Phase 7's migration adds job_postings.search_run_id as an FK to search_runs.
+
+    SQLite can't ALTER TABLE ADD CONSTRAINT directly (migrations/env.py's
+    render_as_batch=True note) -- this proves the batch-mode migration
+    actually produces a working FK column, not just that it runs
+    without raising.
+    """
+    command.upgrade(alembic_config, "head")
+
+    engine = create_engine(f"sqlite:///{tmp_path / 'jobhunt.db'}")
+    try:
+        inspector = inspect(engine)
+        columns = {col["name"] for col in inspector.get_columns("job_postings")}
+        fks = inspector.get_foreign_keys("job_postings")
+    finally:
+        engine.dispose()
+
+    assert "search_run_id" in columns
+    assert any(fk["referred_table"] == "search_runs" for fk in fks)
+
+
+def test_downgrade_to_0001_then_upgrade_head_round_trips(
+    alembic_config: Config, tmp_path: Path
+) -> None:
+    """Downgrading one step (past the batch-mode migration) and back is lossless."""
+    command.upgrade(alembic_config, "head")
+
+    command.downgrade(alembic_config, "0001")
+    tables_after_downgrade = _table_names(tmp_path)
+    assert "search_runs" not in tables_after_downgrade
+
+    command.upgrade(alembic_config, "head")
+    tables_after_reupgrade = _table_names(tmp_path)
+    assert "search_runs" in tables_after_reupgrade

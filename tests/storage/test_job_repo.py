@@ -1,8 +1,10 @@
-"""Round-trip tests for JobRepo (phases.md Phase 4 acceptance criteria)."""
+"""Round-trip tests for JobRepo (phases.md Phase 4 and Phase 7 acceptance criteria)."""
+
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session
 
-from jobhunt_core.schemas.job import JobPosting, RemoteType
+from jobhunt_core.schemas.job import JobPosting, RemoteType, SearchQuery, SearchRun
 from jobhunt_core.storage.repositories.job_repo import JobRepo
 
 
@@ -76,3 +78,46 @@ def test_delete(db_session: Session) -> None:
     repo.delete(saved.id)
 
     assert repo.get(saved.id) is None
+
+
+def test_posting_can_reference_search_run(db_session: Session) -> None:
+    """A posting's search_run_id FK round-trips correctly (database.md §17, Phase 7)."""
+    repo = JobRepo(db_session)
+    search_run = repo.create_search_run(
+        SearchRun(query=SearchQuery(keywords=["python"]), started_at=datetime.now(UTC))
+    )
+
+    saved = repo.save(_sample_posting(search_run_id=search_run.id))
+    fetched = repo.get(saved.id)
+
+    assert fetched is not None
+    assert fetched.search_run_id == search_run.id
+
+
+def test_search_run_round_trip_and_completion(db_session: Session) -> None:
+    """create_search_run then complete_search_run persists counts and completed_at."""
+    repo = JobRepo(db_session)
+    query = SearchQuery(keywords=["python"], locations=["remote"])
+    created = repo.create_search_run(
+        SearchRun(query=query, sources_queried=["greenhouse"], started_at=datetime.now(UTC))
+    )
+
+    assert created.id is not None
+    assert created.completed_at is None
+    fetched_before = repo.get_search_run(created.id)
+    assert fetched_before is not None
+    assert fetched_before.query == query
+    assert fetched_before.sources_queried == ["greenhouse"]
+
+    completed = repo.complete_search_run(created.id, postings_found=5, postings_deduped_new=3)
+
+    assert completed.postings_found == 5
+    assert completed.postings_deduped_new == 3
+    assert completed.completed_at is not None
+
+
+def test_get_search_run_missing_returns_none(db_session: Session) -> None:
+    """A search run id that doesn't exist returns None, not an error."""
+    repo = JobRepo(db_session)
+
+    assert repo.get_search_run("does-not-exist") is None

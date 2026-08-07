@@ -11,7 +11,7 @@ from jobhunt_core.storage.models.application import ApplicationEventModel, Appli
 from jobhunt_core.storage.models.ats import ATSReportModel
 from jobhunt_core.storage.models.base import Base
 from jobhunt_core.storage.models.interview import InterviewModel, InterviewQuestionModel
-from jobhunt_core.storage.models.job import CompanyModel, JobPostingModel
+from jobhunt_core.storage.models.job import CompanyModel, JobPostingModel, SearchRunModel
 from jobhunt_core.storage.models.match import MatchScoreModel
 from jobhunt_core.storage.models.profile import CandidateProfileModel
 
@@ -26,4 +26,5 @@ __all__ = [
     "InterviewQuestionModel",
     "JobPostingModel",
     "MatchScoreModel",
+    "SearchRunModel",
 ]

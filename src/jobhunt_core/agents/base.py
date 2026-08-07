@@ -16,6 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from jobhunt_core.config.settings import Settings
 from jobhunt_core.llm.provider import LLMProvider
+from jobhunt_core.sources.base import JobSource
 from jobhunt_core.storage.repositories import (
     ApplicationRepo,
     ATSRepo,
@@ -53,6 +54,11 @@ class RunContext(BaseModel):
     settings: Settings
     llm: LLMProvider
     repos: RepositoryBundle
+    # Every enabled JobSource, keyed by name (api.md §2), resolved by
+    # orchestration.context.build_sources(). Defaults to empty so every
+    # pre-Phase-7 RunContext(...) call site (agents that don't source
+    # postings) stays valid with no change.
+    sources: dict[str, JobSource] = Field(default_factory=dict)
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 

@@ -1,20 +1,24 @@
-"""JobRepo — storage access for Company and JobPosting (api.md §7, §2)."""
+"""JobRepo — storage access for Company, JobPosting, and SearchRun (api.md §7, §2)."""
 
 from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
 from jobhunt_core.errors import StorageError
-from jobhunt_core.schemas.job import Company, JobPosting
-from jobhunt_core.storage.models.job import CompanyModel, JobPostingModel
+from jobhunt_core.schemas.job import Company, JobPosting, SearchRun
+from jobhunt_core.storage.models.base import utcnow
+from jobhunt_core.storage.models.job import CompanyModel, JobPostingModel, SearchRunModel
 
 
 class JobRepo:
-    """CRUD access to ``job_postings``, plus get-or-create for companies.
+    """CRUD access to ``job_postings``, plus get-or-create for companies and search runs.
 
-    Company handling lives here rather than in a separate repository:
-    it's a small, tightly-coupled lookup table for job postings only
-    (tasks.md T4.4 names 6 aggregates, not a 7th for Company).
+    Company and SearchRun handling live here rather than in separate
+    repositories: both are small, tightly-coupled to job postings and
+    the Job Search Agent's own execution (tasks.md T4.4 names 6
+    aggregates in ``RepositoryBundle``, not one apiece for these two —
+    same reasoning already applied to ``Company`` in Phase 4, extended
+    to ``SearchRun`` in Phase 7).
     """
 
     def __init__(self, session: Session) -> None:
@@ -75,6 +79,38 @@ class JobRepo:
             self._session.flush()
         return self._company_to_schema(row)
 
+    def create_search_run(self, search_run: SearchRun) -> SearchRun:
+        """Insert a new ``search_runs`` row, e.g. at the start of a Job Search Agent run.
+
+        ``search_run.started_at`` should already be set by the caller
+        (e.g. ``datetime.now(UTC)``) -- passing ``None`` explicitly
+        overrides the column's server-side default rather than
+        triggering it.
+        """
+        data = search_run.model_dump(exclude={"id", "completed_at"})
+        row = SearchRunModel(**data)
+        self._session.add(row)
+        self._session.flush()
+        return self._search_run_to_schema(row)
+
+    def complete_search_run(
+        self, id: str, *, postings_found: int, postings_deduped_new: int
+    ) -> SearchRun:
+        """Record a search run's outcome and mark it completed."""
+        row = self._session.get(SearchRunModel, id)
+        if row is None:
+            raise StorageError(f"SearchRun {id} not found")
+        row.postings_found = postings_found
+        row.postings_deduped_new = postings_deduped_new
+        row.completed_at = utcnow()
+        self._session.flush()
+        return self._search_run_to_schema(row)
+
+    def get_search_run(self, id: str) -> SearchRun | None:
+        """Look up a search run by id, or ``None`` if it doesn't exist."""
+        row = self._session.get(SearchRunModel, id)
+        return self._search_run_to_schema(row) if row is not None else None
+
     def _to_schema(self, row: JobPostingModel) -> JobPosting:
         return JobPosting(
             id=row.id,
@@ -90,6 +126,7 @@ class JobRepo:
             normalized_description=row.normalized_description,
             posted_at=row.posted_at,
             discovered_at=row.discovered_at,
+            search_run_id=row.search_run_id,
             created_at=row.created_at,
             updated_at=row.updated_at,
         )
@@ -102,4 +139,16 @@ class JobRepo:
             notes=row.notes,
             created_at=row.created_at,
             updated_at=row.updated_at,
+        )
+
+    def _search_run_to_schema(self, row: SearchRunModel) -> SearchRun:
+        return SearchRun(
+            id=row.id,
+            user_id=row.user_id,
+            query=row.query,  # type: ignore[arg-type]  # pydantic parses dict -> SearchQuery
+            sources_queried=row.sources_queried,
+            postings_found=row.postings_found,
+            postings_deduped_new=row.postings_deduped_new,
+            started_at=row.started_at,
+            completed_at=row.completed_at,
         )

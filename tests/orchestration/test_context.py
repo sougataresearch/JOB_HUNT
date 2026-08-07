@@ -3,10 +3,18 @@
 import pytest
 from sqlalchemy.orm import Session
 
-from jobhunt_core.config.settings import AgentConfig, LLMConfig, ProviderConfig, Settings
+from jobhunt_core.config.settings import (
+    AgentConfig,
+    LLMConfig,
+    ProviderConfig,
+    Settings,
+    SourceConfig,
+)
 from jobhunt_core.errors import LLMProviderError
 from jobhunt_core.llm.providers.anthropic_provider import AnthropicProvider
-from jobhunt_core.orchestration.context import build_llm_provider, build_run_context
+from jobhunt_core.orchestration.context import build_llm_provider, build_run_context, build_sources
+from jobhunt_core.sources.greenhouse_source import GreenhouseSource
+from jobhunt_core.sources.manual_import_source import ManualImportSource
 
 
 def _settings_with_provider(provider_name: str, **provider_cfg_kwargs: object) -> Settings:
@@ -117,3 +125,58 @@ def test_build_run_context_bundles_all_six_repositories(
     assert ctx.repos.ats is not None
     assert ctx.repos.applications is not None
     assert ctx.repos.interviews is not None
+
+
+def test_build_sources_constructs_every_enabled_source() -> None:
+    """Both Phase 7 sources are constructed with their config-driven kwargs."""
+    settings = Settings(
+        llm=LLMConfig(default_provider="anthropic", providers={}),
+        agents={},
+        sources={
+            "greenhouse": SourceConfig(enabled=True, boards=["acme", "widgetco"]),
+            "manual_import": SourceConfig(enabled=True),
+        },
+    )
+
+    sources = build_sources(settings)
+
+    assert isinstance(sources["greenhouse"], GreenhouseSource)
+    assert sources["greenhouse"]._boards == ["acme", "widgetco"]
+    assert isinstance(sources["manual_import"], ManualImportSource)
+
+
+def test_build_sources_omits_disabled_sources() -> None:
+    """A disabled source is left out entirely, not constructed and then ignored."""
+    settings = Settings(
+        llm=LLMConfig(default_provider="anthropic", providers={}),
+        agents={},
+        sources={
+            "greenhouse": SourceConfig(enabled=False, boards=["acme"]),
+            "manual_import": SourceConfig(enabled=True),
+        },
+    )
+
+    sources = build_sources(settings)
+
+    assert "greenhouse" not in sources
+    assert "manual_import" in sources
+
+
+def test_build_run_context_wires_sources(
+    db_session: Session, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """RunContext.sources is populated by build_run_context, not left empty."""
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
+    settings = Settings(
+        llm=LLMConfig(
+            default_provider="anthropic",
+            providers={"anthropic": ProviderConfig(base_model="claude-sonnet-5")},
+        ),
+        agents={"job_search": AgentConfig(enabled=True)},
+        sources={"manual_import": SourceConfig(enabled=True)},
+    )
+
+    ctx = build_run_context(settings, db_session, agent_name="job_search")
+
+    assert "manual_import" in ctx.sources
+    assert isinstance(ctx.sources["manual_import"], ManualImportSource)

@@ -9,11 +9,13 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
+from jobhunt_core import sources as _sources  # noqa: F401 -- registers connectors
 from jobhunt_core.agents.base import RepositoryBundle, RunContext
 from jobhunt_core.config.settings import Settings
-from jobhunt_core.errors import LLMProviderError
+from jobhunt_core.errors import LLMProviderError, SourceFetchError
 from jobhunt_core.llm import providers as _providers  # noqa: F401 -- registers adapters
 from jobhunt_core.llm.provider import LLMProvider, get_provider_class
+from jobhunt_core.sources.base import JobSource, get_source_class
 from jobhunt_core.storage.repositories import (
     ApplicationRepo,
     ATSRepo,
@@ -86,6 +88,39 @@ def build_llm_provider(provider_name: str, settings: Settings) -> LLMProvider:
     raise LLMProviderError(f"Unknown provider '{provider_name}'.")
 
 
+def build_sources(settings: Settings) -> dict[str, JobSource]:
+    """Construct every enabled ``JobSource`` from ``settings.sources`` (api.md §2).
+
+    A small, explicit if/elif dispatch, same reasoning as
+    :func:`build_llm_provider`: with only 2 known sources and
+    differing constructor needs (board tokens vs. nothing), this stays
+    simpler than a generic ``from_settings()`` convention would
+    (rules.md no-speculative-abstraction).
+
+    Args:
+        settings: The loaded application settings.
+
+    Returns:
+        Every enabled source, keyed by name. Disabled sources are
+        omitted entirely (config.md §Config Validation Rules).
+    """
+    resolved: dict[str, JobSource] = {}
+    for name, cfg in settings.sources.items():
+        if not cfg.enabled:
+            continue
+        source_cls = get_source_class(name)
+        if name == "greenhouse":
+            resolved[name] = source_cls(boards=cfg.boards)  # type: ignore[call-arg]
+        elif name == "manual_import":
+            resolved[name] = source_cls()
+        else:
+            raise SourceFetchError(
+                f"No construction rule for source '{name}' in build_sources().",
+                remedy="Add an elif branch for it in orchestration/context.py.",
+            )
+    return resolved
+
+
 def build_repository_bundle(session: Session) -> RepositoryBundle:
     """Construct a ``RepositoryBundle``, all repositories sharing one session."""
     return RepositoryBundle(
@@ -116,4 +151,5 @@ def build_run_context(settings: Settings, session: Session, *, agent_name: str) 
     provider_name = (agent_cfg.provider if agent_cfg else None) or settings.llm.default_provider
     llm = build_llm_provider(provider_name, settings)
     repos = build_repository_bundle(session)
-    return RunContext(settings=settings, llm=llm, repos=repos)
+    sources = build_sources(settings)
+    return RunContext(settings=settings, llm=llm, repos=repos, sources=sources)

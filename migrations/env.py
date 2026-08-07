@@ -1,4 +1,14 @@
-"""Alembic environment (database.md, tasks.md T4.3)."""
+"""Alembic environment (database.md, tasks.md T4.3).
+
+``render_as_batch=True`` on both configure() calls below: SQLite (the
+only dialect this project targets, ADR-0002) doesn't support `ALTER
+TABLE ADD CONSTRAINT` at all -- any migration that adds a FK/unique
+constraint to an existing table needs Alembic's copy-and-move "batch"
+strategy or it raises `NotImplementedError` at migration time, not
+just at autogenerate time. Discovered writing Phase 7's `search_runs`
+migration (adding a FK to the already-existing `job_postings` table);
+applied here globally so no future migration hits the same surprise.
+"""
 
 import os
 from logging.config import fileConfig
@@ -56,6 +66,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        render_as_batch=True,
     )
 
     with context.begin_transaction():
@@ -78,7 +89,9 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection, target_metadata=target_metadata, render_as_batch=True
+        )
 
         with context.begin_transaction():
             context.run_migrations()

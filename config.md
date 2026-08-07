@@ -142,10 +142,17 @@ adapter file (`architecture.md` §6), never a change to agent code.
 
 ```yaml
 sources:
-  greenhouse:      { enabled: true,  rate_limit_per_min: 30 }
+  greenhouse:      { enabled: true,  rate_limit_per_min: 30, boards: ["gitlab"] }
   manual_import:   { enabled: true }
   # additional sources added per phases.md Phase 7 / roadmap.md
 ```
+
+- `boards` (Greenhouse only, Phase 7): a list of Greenhouse board
+  tokens (company career-page slugs) to poll — the public
+  [Greenhouse Job Board API](https://developers.greenhouse.io/job-board.html)
+  is per-company, with no cross-company keyword search, so this list
+  is how the user targets specific companies. Ignored by sources that
+  don't use it.
 
 ## Config Validation Rules
 
