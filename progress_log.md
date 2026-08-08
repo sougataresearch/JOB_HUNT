@@ -1473,3 +1473,77 @@ to Phase 18, `run_setup()`/`run_rank()`/`run_outcome()`'s missing
 
 **Not yet done:** commit/push for this phase — next action. Phase 16
 (Career Analytics) has not started.
+
+## 2026-08-08 — Phase 16 (Career Analytics Agent) complete
+
+**Built, per `tasks.md` T16.1–T16.2:**
+- `schemas/analytics.py`: `RateBreakdown` (per-group rates) and
+  `AnalyticsReport` (agents.md §11, database.md §18 -- computed on
+  read, never persisted as its own table, so "storage" here is just
+  these two Pydantic shapes, no model/migration).
+- `agents/career_analytics_agent.py`: `CareerAnalyticsAgent`, fully
+  deterministic (agents.md §11: "writes nothing (pure computation)"),
+  `prompt_version`/`model` always `"n/a"` (same convention as
+  `ApplicationTrackingAgent`). Reads every `Application` +
+  its `JobPosting`, computes overall + by-role-title + by-source
+  response/interview/offer rates. Below 5 submitted applications
+  (agents.md §11's own named threshold, not this implementation's
+  choice), every rate field is `None` and `insufficient_data=True`
+  rather than showing a rate from a sample too small to mean anything.
+- `documents/report_renderer.py` + `cli/commands/report.py` +
+  `.claude/commands/html-report.md` + `cli/main.py` wiring (`jobhunt
+  report`) -- a standalone Jinja2 HTML render, deliberately not built
+  on the `DocumentRenderer` Protocol (that Protocol's `compile()` step
+  is LaTeX-engine-specific; forcing an unrelated concern into it would
+  violate rules.md's no-speculative-abstraction rule). Autoescaped
+  (unlike `prompts/loader.py`'s plain-text prompt environment) since
+  role titles/source names ultimately trace back to sourced posting
+  content. `run_report()` builds its own lightweight `RunContext` with
+  no real `LLMProvider`, same reasoning and same pattern as
+  `cli/commands/outcome.py`'s `_UnusedLLMProvider`.
+
+**A disclosed, deliberate scope choice, not silently dropped
+(rules.md AI Coding Rule 2):** agents.md §11 mentions an *optional*
+LLM-generated narrative summary layer ("purely for prose, never for
+the numbers"). Deferred here -- `tasks.md` T16.1's own Expected files
+list has no prompt file, and phases.md Phase 16's acceptance criteria
+only requires numeric correctness on fixture data, not narrative
+prose. `config/agents.yaml`'s existing `career_analytics` entry is
+left as-is for whenever that layer is actually built.
+
+**Two own judgment calls, cited rather than presented as doc-derived
+(rules.md AI Coding Rule 5):** (1) "role type" is grouped by
+`JobPosting.title` verbatim -- agents.md §11 also says "by... seniority"
+but no seniority field exists anywhere in the schema, and phases.md
+Phase 16's own AC only requires "role type and source" (seniority
+dropped), so it was never built rather than inventing an unbacked
+field. (2) "response" is defined as
+`screening`/`interview_scheduled`/`interview_completed`/`offer`/
+`rejected` (the employer visibly acted), excluding `withdrawn`
+(candidate-initiated) and `submitted` (no response yet) --
+agents.md §11 names "response rate" without defining which statuses
+count as a response.
+
+**Verified, not assumed:** `ruff check`, `ruff format --check`, `mypy
+--strict` (85 source files), full `pytest` (292 passed, up from 283 --
+97% coverage maintained). Hand-computed a 6-application fixture across
+4 postings/2 roles/2 sources and checked every overall/by-role/
+by-source rate against the hand computation
+(`test_run_computes_hand_verified_overall_and_breakdown_rates`) --
+agents.md §11 Metrics' own bar ("verified against hand-computed
+fixture aggregates"). `pre-commit run --all-files` hit the familiar
+ruff-version-drift oscillation on 4 files on the first run; stable on
+the second.
+
+**Still open:** everything carried from Phase 15 (license
+confirmation, Ollama live-server smoke test, real LLM pricing, native
+system-prompt support on `LLMProvider`, `populate_by_name=True` audit,
+the recorded-cassette eval harness, Greenhouse rate-limit enforcement,
+optional LLM-assisted manual-paste normalization, `agent_runs`/
+`prompt_versions` unbuilt, Windows LaTeX setup documentation deferred
+to Phase 18) plus the optional Career Analytics narrative-summary
+layer (deferred, see above) and `run_report()` joining the existing
+`engine.dispose()` gap.
+
+**Not yet done:** commit/push for this phase — next action. Phase 17
+(Testing & Quality Hardening) has not started.

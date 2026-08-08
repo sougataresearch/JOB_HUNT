@@ -2,7 +2,7 @@
 
 Status: Draft v1.0 · Last updated: 2026-08-02 · Progress last marked: 2026-08-08
 
-**Phases 1–15 of 18 are complete** (✅ below); 16–18 (⬜) are not yet
+**Phases 1–16 of 18 are complete** (✅ below); 17–18 (⬜) are not yet
 started. Each phase's `**Status:**` line is a pointer, not the record
 of truth — see `progress_log.md` for the detailed, dated build history
 behind each completed phase, and `memory.md` for a current-state
@@ -356,7 +356,7 @@ generic interview advice; golden-file tests pass.
 
 ## Phase 16 — Career Analytics (Career Analytics Agent)
 
-**Status:** ⬜ Not started.
+**Status:** ✅ Complete — see `progress_log.md`.
 
 **Objectives:** Aggregate application history into actionable trends.
 

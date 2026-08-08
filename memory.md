@@ -1,6 +1,6 @@
 # Project Memory — JOB_HUNT
 
-Status: Current snapshot · Last updated: 2026-08-08 (Phase 15)
+Status: Current snapshot · Last updated: 2026-08-08 (Phase 16)
 
 This is what an AI coding agent (or a new human contributor) should
 internalize before touching this repo. It's a snapshot, not a spec —
@@ -9,21 +9,21 @@ those win; update this file to match.
 
 ## Current Status
 
-**Phases 1–15 complete** (Foundation, Configuration, Core AI/LLM
+**Phases 1–16 complete** (Foundation, Configuration, Core AI/LLM
 Provider Layer, Storage & Schemas, CV Analysis/Resume Analysis Agent,
 Skill Gap Analysis/Skill Gap Agent, Job Search/Job Search Agent +
 source connectors, Job Matching/Job Matching Agent, Ranking, ATS
 Optimization/ATS Optimization Agent, Resume Customization Agent +
 LaTeX Rendering, Cover Letter Agent, Email Generation Agent,
-Application Tracking Agent, Interview Prep Agent). Ten real agents
-exist and are registered: `resume_analysis`, `skill_gap`,
-`job_search`, `job_matching`, `ats_optimization`,
+Application Tracking Agent, Interview Prep Agent, Career Analytics
+Agent). Eleven real agents exist and are registered: `resume_analysis`,
+`skill_gap`, `job_search`, `job_matching`, `ats_optimization`,
 `resume_customization`, `cover_letter`, `email_generation`,
-`application_tracking`, `interview_prep`. Ranking
+`application_tracking`, `interview_prep`, `career_analytics`. Ranking
 (`orchestration/ranking.py`) is a plain deterministic function, not an
-agent (api.md §3, confirmed during Phase 9); Application Tracking is a
-real registered agent but also has no LLM call (agents.md §9 --
-`prompt_version`/`model` are always `"n/a"`). Two source connectors
+agent (api.md §3, confirmed during Phase 9); Application Tracking and
+Career Analytics are both real registered agents with no LLM call at
+all (`prompt_version`/`model` always `"n/a"`). Two source connectors
 exist: `greenhouse` (public Job Board API) and `manual_import` (ToS
 fallback). ATS Optimization uses a deterministic keyword-extraction
 step (no LLM) before an LLM judgment step classifies gaps as
@@ -36,36 +36,38 @@ confirmed working) — each with its own drafter→reviewer loop
 Cover Letter Agent and Interview Prep Agent read `ResumeVersion.
 ats_extracted_text_path` directly (Phase 11's PDF-verification
 artifact) to ground their LLM calls in the tailored resume's actual
-text — an established reuse pattern now used twice. Email Generation
-Agent is a single LLM call with no reviewer pass (agents.md §8: it
-only summarizes two already-approved documents) and persists nothing
-of its own. `RepositoryBundle` has 7 repos (added `documents:
-DocumentRepo` in Phase 11); `DocumentRepo` also owns `cover_letters`
-CRUD (Phase 12 reused it rather than adding an 8th `RepositoryBundle`
-field). `Application.resume_version_id`/`cover_letter_id` were added
-in Phase 14 (deferred since Phase 4/11/12); `ApplicationRepo`/
-`InterviewRepo` (both built in Phase 4, ahead of the agents that use
-them) are the system of record every tracking-adjacent agent reads
-from. CLI commands so far: `setup`, `rank`, `outcome`, `interview`
-(`cli/main.py`); `outcome` deliberately builds its own `RunContext`
-rather than using `build_run_context()`, since that helper always
-needs a real `LLMProvider`/API key even for that LLM-free agent —
+text. Email Generation Agent is a single LLM call with no reviewer
+pass and persists nothing of its own. Career Analytics computes
+response/interview/offer rates on read from `applications`
+(`documents/report_renderer.py` renders them as a standalone,
+offline, autoescaped Jinja2 HTML page — not built on the
+`DocumentRenderer` Protocol, which is LaTeX-specific). `RepositoryBundle`
+has 7 repos (added `documents: DocumentRepo` in Phase 11);
+`DocumentRepo` also owns `cover_letters` CRUD. `Application.
+resume_version_id`/`cover_letter_id` were added in Phase 14.
+CLI commands so far: `setup`, `rank`, `outcome`, `interview`, `report`
+(`cli/main.py`); `outcome`/`report` both deliberately build their own
+lightweight `RunContext` (an `_UnusedLLMProvider` placeholder) rather
+than using `build_run_context()`, since that helper always needs a
+real `LLMProvider`/API key even for these two LLM-free agents —
 `interview` uses `build_run_context()` normally since Interview Prep
 does call an LLM. Since no event-driven orchestrator exists yet
-(agent-by-agent CLI invocation only), both `/outcome` and
-`/interview`'s status-trigger conditions (agents.md §9/§10) are
-enforced explicitly in the CLI layer, not automatically. Golden-file
-eval suites exist for four agents now: `tests/eval/{skill_gap,
-job_matching,interview_prep}/` plus Job Matching's regression suite;
-Resume Customization/Cover Letter use direct fixture tests instead
-(real LaTeX compiles don't fit the golden-file YAML shape). Next up
-per `implementation_order.md`/`phases.md` is Phase 16 (Career
-Analytics — Career Analytics Agent), a mostly-deterministic
-aggregation agent (agents.md §11) reading `applications`/
-`application_events`/`job_postings`, feeding `jobhunt report` (HTML
-dashboard, later in Phase 16). Do not write `jobhunt_core` source
-files without checking `progress_log.md` first for the latest open
-items — this section is a snapshot, not a substitute for it.
+(agent-by-agent CLI invocation only), `/outcome` and `/interview`'s
+status-trigger conditions (agents.md §9/§10) are enforced explicitly
+in the CLI layer, not automatically. Golden-file eval suites exist for
+three agents (`tests/eval/{skill_gap,job_matching,interview_prep}/`);
+Resume Customization/Cover Letter/Application Tracking/Career
+Analytics use direct fixture tests instead (real LaTeX compiles or
+pure deterministic logic don't fit the golden-file YAML shape). Next
+up per `implementation_order.md`/`phases.md` is Phase 17 (Testing &
+Quality Hardening) — an E2E fixture pipeline test, an 80% coverage CI
+gate, and `pip-audit`/secret-scanning wired into CI — then Phase 18
+(Deployment & OSS Release), whose license-confirmation and
+tagged-release steps explicitly require the maintainer's go-ahead
+before acting (tasks.md T18.3, already flagged to the user). Do not
+write `jobhunt_core` source files without checking `progress_log.md`
+first for the latest open items — this section is a snapshot, not a
+substitute for it.
 
 ## Project Philosophy
 
