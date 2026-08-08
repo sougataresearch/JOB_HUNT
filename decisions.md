@@ -248,16 +248,16 @@ breaking in-tree agents.
 
 ---
 
-## ADR-0009: License — MIT (proposed)
+## ADR-0009: License — MIT (confirmed)
 
 **Context:** The project will be pushed to a public GitHub repository
 (`sougataresearch/JOB_HUNT`) with the stated goal of eventually becoming
 open source and accepting contributions (job-board integrations, CV
 templates).
 
-**Decision (proposed, pending final confirmation before first public
-push):** MIT license — maximally permissive, minimal friction for
-contributors and downstream users adapting it to their own CV/region.
+**Decision (confirmed by the maintainer in Phase 18, 2026-08-08):**
+MIT license — maximally permissive, minimal friction for contributors
+and downstream users adapting it to their own CV/region.
 
 **Alternatives considered:**
 - *Apache 2.0* — adds explicit patent grant language; reasonable
@@ -268,10 +268,9 @@ contributors and downstream users adapting it to their own CV/region.
   casual contributions this project wants (CV templates, job-source
   connectors).
 
-**Consequences:** No `LICENSE` file has been added yet — this ADR
-records the recommendation; final selection should be explicitly
-confirmed by the maintainer before the repository is made public
-(`README.md` §License).
+**Consequences:** `LICENSE` (MIT text) and `pyproject.toml`'s
+`license`/`license-files` fields were added in the same change as this
+confirmation (`README.md` §License, `progress_log.md` Phase 18 entry).
 
 ---
 

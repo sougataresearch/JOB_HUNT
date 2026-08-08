@@ -7,7 +7,7 @@ interviews, and tracks every application — all running on your own
 machine, driven through [Claude Code](https://claude.com/claude-code)
 commands, with no mandatory cloud backend beyond your chosen LLM API.
 
-**Phases 1–17 of 18 are complete** — eleven real, tested agents
+**All 18 phases are complete** (v0.1.0) — eleven real, tested agents
 (`resume_analysis`, `skill_gap`, `job_search`, `job_matching`,
 `ats_optimization`, `resume_customization`, `cover_letter`,
 `email_generation`, `application_tracking`, `interview_prep`,
@@ -71,15 +71,18 @@ auditable AI agents you can inspect, override, and extend.
 
 ## Status
 
-**Phases 1–17 complete** (Foundation through Testing & Quality
-Hardening). Still open: Deployment & Open-Source Release (Phase 18) —
-see [`phases.md`](phases.md) for the full roadmap and
-[`memory.md`](memory.md) for a current-state snapshot. Check
-[`progress_log.md`](progress_log.md) for the latest dated entry before
-starting any substantive work — it carries forward every known open
-item and honest limitation (e.g. no real-LLM eval harness yet; every
-existing eval test proves agent plumbing against a scripted response,
-not real model quality).
+**Phases 1–18 complete** (v0.1.0, tagged 2026-08-08) — every phase in
+[`phases.md`](phases.md) is done. That does not mean "finished" in an
+absolute sense: `/scrape` and `/apply` CLI/slash commands were never
+built (running the full pipeline today means calling agents directly
+in Python, as `tests/e2e/test_full_apply_pipeline.py` does), and
+[`roadmap.md`](roadmap.md)'s near/long-term agents (LinkedIn,
+Networking, Gmail sync, etc.) are future work by design. See
+[`memory.md`](memory.md) for a current-state snapshot and
+[`progress_log.md`](progress_log.md) for the latest dated entry — it
+carries forward every known open item and honest limitation (e.g. no
+real-LLM eval harness yet; every existing eval test proves agent
+plumbing against a scripted response, not real model quality).
 
 ### What works today
 
@@ -108,6 +111,5 @@ points to (`rules.md`) are binding, not advisory.
 
 ## License
 
-MIT (proposed — see [`decisions.md`](decisions.md) ADR-0009). Not yet
-applied to a `LICENSE` file pending final confirmation before the first
-public push.
+[MIT](LICENSE) — see [`decisions.md`](decisions.md) ADR-0009 for the
+reasoning.

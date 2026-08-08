@@ -2,8 +2,7 @@
 
 Status: Draft v1.0 · Last updated: 2026-08-02 · Progress last marked: 2026-08-08
 
-**Phases 1–17 of 18 are complete** (✅ below); 18 (⬜) is not yet
-started. Each phase's `**Status:**` line is a pointer, not the record
+**All 18 phases are complete** (✅ below), tagged `v0.1.0`. Each phase's `**Status:**` line is a pointer, not the record
 of truth — see `progress_log.md` for the detailed, dated build history
 behind each completed phase, and `memory.md` for a current-state
 snapshot.
@@ -398,7 +397,7 @@ with a documented reason.
 
 ## Phase 18 — Deployment & Open-Source Release
 
-**Status:** ⬜ Not started.
+**Status:** ✅ Complete — see `progress_log.md`. Tagged `v0.1.0`.
 
 **Objectives:** Make the repository genuinely usable by someone who is
 not the maintainer.

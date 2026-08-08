@@ -1703,3 +1703,50 @@ optional LLM-assisted manual-paste normalization, `agent_runs`/
 `prompt_versions` unbuilt, the optional Career Analytics narrative
 layer, `run_report()`'s `engine.dispose()` gap, and now the disclosed
 `/scrape`/`/apply` orchestration-command gap above).
+
+## 2026-08-08 — Phase 18 (Deployment & Open-Source Release), T18.3 complete — v0.1.0 tagged
+
+**Maintainer confirmed both open questions explicitly** (not assumed):
+MIT license, and yes to a `v0.1.0` tagged release now.
+
+**Built:**
+- `LICENSE` (MIT text, copyright sougataresearch 2026).
+- `pyproject.toml` gained `license = "MIT"` and `license-files =
+  ["LICENSE"]` (PEP 639 string form) -- verified with a real `pip
+  install -e .` afterward, not assumed to parse correctly.
+- `decisions.md` ADR-0009 updated from "proposed, pending final
+  confirmation" to "confirmed" with the actual confirmation date, per
+  `rules.md`'s own rule that ADR-worthy decisions get recorded, not
+  left stale once actually settled.
+- `README.md`/`phases.md`/`memory.md` all updated from "Phases 1-17
+  complete, 18 open" to "all 18 phases complete, tagged v0.1.0" --
+  with an explicit caveat in each that "all phases complete" is a
+  roadmap-completion statement, not a claim of being finished in an
+  absolute sense: `/scrape`/`/apply` orchestration commands were never
+  built (disclosed in this same phase's earlier entry above), and
+  `roadmap.md`'s further-out agents are future work by design.
+- An annotated git tag `v0.1.0` created and pushed to
+  `https://github.com/sougataresearch/JOB_HUNT.git`.
+
+**Verified, not assumed:** full `pytest --cov-fail-under=80` re-run
+after these final edits, `pre-commit run --all-files` clean, before
+either the closing commit or the tag push -- a tag push is exactly
+the kind of one-way, visible action (`rules.md`) that should never
+ride on an unverified state.
+
+**Still open (carried forward, not resolved by this release):**
+Ollama live-server smoke test, real LLM pricing, native system-prompt
+support on `LLMProvider`, `populate_by_name=True` audit, the
+recorded-cassette/real-LLM eval harness upgrade, Greenhouse rate-limit
+enforcement, optional LLM-assisted manual-paste normalization,
+`agent_runs`/`prompt_versions` audit tables unbuilt, the optional
+Career Analytics narrative layer, several agents' `engine.dispose()`
+gaps (`run_setup`/`run_rank`/`run_outcome`/`run_interview`/
+`run_report`), and the `/scrape`/`/apply` CLI orchestration-command
+gap. None of these block v0.1.0 -- they're the honest list of what a
+future contributor should expect to find still open, per every prior
+phase's own convention of carrying this list forward rather than
+letting it go stale.
+
+**This closes the full 18-phase roadmap.** Every phase in
+`phases.md` is now `✅ Complete`.

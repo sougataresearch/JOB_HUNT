@@ -9,8 +9,10 @@ description = "Local-first AI career assistant — core library (agents, LLM lay
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "sougataresearch" }]
-# License is proposed (MIT) but not yet finalized — decisions.md ADR-0009,
-# tasks.md T1.6. Applied here and as a LICENSE file in Phase 18.
+# MIT confirmed by the maintainer in Phase 18 — decisions.md ADR-0009,
+# tasks.md T1.6/T18.3. See the LICENSE file for the full text.
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
     # Phase 2 (config.md, design.md §8): layered Settings loading.
     "pydantic>=2.7",
