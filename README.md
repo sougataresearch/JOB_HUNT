@@ -20,6 +20,21 @@ secret scanning). See [`phases.md`](phases.md) and
 and what's left, and [`progress_log.md`](progress_log.md) for the
 detailed, dated build history.
 
+## Quickstart
+
+```bash
+git clone https://github.com/sougataresearch/JOB_HUNT.git
+cd JOB_HUNT
+pip install -e ".[dev]"
+cp .env.example .env   # then fill in an LLM provider API key
+pytest                 # verify the install — no live network/LLM calls
+python -m cli.main setup path/to/your_cv.pdf
+```
+
+Full steps, including LaTeX distribution setup (required for Resume
+Customization/Cover Letter rendering) on Windows/macOS/Linux, are in
+[`docs/quickstart.md`](docs/quickstart.md).
+
 ## Why this exists
 
 Manually tailoring a CV and cover letter for every job posting doesn't
@@ -51,6 +66,8 @@ auditable AI agents you can inspect, override, and extend.
 | [`implementation_order.md`](implementation_order.md) | The exact build order, dependency by dependency |
 | [`final_review.md`](final_review.md) | Self-critique of this architecture — weaknesses and mitigations |
 | [`progress_log.md`](progress_log.md) | Dated log of decisions and open items |
+| [`docs/quickstart.md`](docs/quickstart.md) | Setup steps: install, LaTeX distribution, first run |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to propose and submit a change |
 
 ## Status
 
@@ -82,6 +99,12 @@ not real model quality).
   (`api.md` §0); `tests/e2e/test_full_apply_pipeline.py` chains the
   full Resume Analysis → Application Tracking sequence end to end
   against fixture data.
+
+## Contributing
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) — bug reports, feature
+requests, and PRs are welcome; the coding/testing/security rules it
+points to (`rules.md`) are binding, not advisory.
 
 ## License
 

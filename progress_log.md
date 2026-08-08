@@ -1635,3 +1635,71 @@ to Phase 18, the optional Career Analytics narrative layer,
 (Deployment & Open-Source Release) has not started; its license-
 confirmation and tagged-release steps require explicit maintainer
 go-ahead before acting (tasks.md T18.3).
+
+## 2026-08-08 — Phase 18 (Deployment & Open-Source Release), T18.1–T18.2 complete
+
+**Built, per `tasks.md` T18.1–T18.2:**
+- `docs/quickstart.md` (new): prerequisites (Python 3.11+, a LaTeX
+  distribution providing `lualatex`/`pdftotext` -- MiKTeX/MacTeX/
+  texlive-latex-extra with per-OS install notes, including the Phase
+  11 first-compile-is-slower-is-expected note carried forward), clone
+  + install + configure + verify steps, and a walkthrough of every
+  real CLI command (`setup`/`rank`/`outcome`/`interview`/`report`).
+- `README.md` expanded: a `## Quickstart` section with the shortest
+  correct path (pointing to `docs/quickstart.md` for the LaTeX detail
+  rather than duplicating it), doc-index rows for the two new files,
+  and a `## Contributing` section.
+- `CONTRIBUTING.md`, `.github/ISSUE_TEMPLATE/{bug_report,feature_request}.md`,
+  `.github/PULL_REQUEST_TEMPLATE.md`: contribution scaffolding citing
+  the actual binding rules (`rules.md`) rather than generic
+  boilerplate -- the PR template's checklist matches the real local
+  verification sequence (`ruff`/`mypy`/`pytest --cov-fail-under=80`/
+  `pre-commit`) used throughout every phase of this project, and both
+  the CONTRIBUTING doc and PR template explicitly call out the
+  prompt-injection-guardrail test (Phase 17) a new untrusted-content
+  prompt needs to extend.
+
+**A real, disclosed gap between phases.md's AC and tasks.md's actual
+task breakdown, not silently resolved either way:** phases.md's
+Phase 18 acceptance criteria references "a successful `/setup` +
+`/scrape` + `/apply` dry run on fixture data" -- but `/scrape` and
+`/apply` were never built as CLI/Claude-Code commands in any phase
+(they appear only as illustrative names in `design.md`/`architecture.md`,
+inherited from the reference architecture this project's docs were
+modeled on). `tasks.md` T18.1's own Expected files list (`README.md`,
+`docs/quickstart.md`) confirms Phase 18 itself was never scoped to
+build them -- no prior phase's task breakdown asked for a `/scrape` or
+`/apply` wrapper either (Job Search's own Phase 7 tasks list no CLI
+command; a full-pipeline `/apply` orchestrator command doesn't exist
+as a task anywhere). Rather than fabricating those commands under an
+implicit "Phase 18" umbrella (scope creep, rules.md AI Coding Rule 2)
+or silently rewriting the AC to match reality with no note, both
+`docs/quickstart.md` and this entry say so explicitly: today, running
+the full pipeline means calling agents directly in Python, exactly as
+`tests/e2e/test_full_apply_pipeline.py` (Phase 17) does. Flagged to
+the user directly, not just buried here.
+
+**Verified, not assumed:** this batch is documentation/scaffolding
+only (no `src/jobhunt_core`/`cli/` changes) -- confirmed by running
+the full suite anyway before committing: `pytest --cov-fail-under=80`
+(304 passed, 97% coverage; one transient LaTeX-compile timeout on an
+earlier full-suite run under background load, re-confirmed passing in
+isolation and on a clean full re-run immediately after -- not a
+regression from a doc-only change, and not silently waved away without
+re-checking). `pre-commit run --all-files` clean on the first pass.
+
+**Still open, T18.3 specifically:** License confirmation (MIT
+proposed, `decisions.md` ADR-0009) and the tagged-release push both
+explicitly require the maintainer's own go-ahead per `tasks.md`
+T18.3's own checklist ("pushing to a public remote is a one-way,
+visible action") -- not done in this entry, pending that
+confirmation. Once confirmed: apply the `LICENSE` file, add the SPDX
+classifier to `pyproject.toml`, then tag and push only after an
+explicit yes. Everything else carried from Phase 17 remains open too
+(Ollama live-server smoke test, real LLM pricing, native system-prompt
+support on `LLMProvider`, `populate_by_name=True` audit, the
+recorded-cassette eval harness, Greenhouse rate-limit enforcement,
+optional LLM-assisted manual-paste normalization, `agent_runs`/
+`prompt_versions` unbuilt, the optional Career Analytics narrative
+layer, `run_report()`'s `engine.dispose()` gap, and now the disclosed
+`/scrape`/`/apply` orchestration-command gap above).

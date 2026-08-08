@@ -1,6 +1,6 @@
 # Project Memory — JOB_HUNT
 
-Status: Current snapshot · Last updated: 2026-08-08 (Phase 17)
+Status: Current snapshot · Last updated: 2026-08-08 (Phase 18 T18.1-T18.2)
 
 This is what an AI coding agent (or a new human contributor) should
 internalize before touching this repo. It's a snapshot, not a spec —
@@ -9,7 +9,8 @@ those win; update this file to match.
 
 ## Current Status
 
-**Phases 1–17 complete** (Foundation, Configuration, Core AI/LLM
+**Phases 1–17 complete, Phase 18 partially complete (T18.1-T18.2
+done; T18.3 blocked on maintainer confirmation)** (Foundation, Configuration, Core AI/LLM
 Provider Layer, Storage & Schemas, CV Analysis/Resume Analysis Agent,
 Skill Gap Analysis/Skill Gap Agent, Job Search/Job Search Agent +
 source connectors, Job Matching/Job Matching Agent, Ranking, ATS
@@ -67,15 +68,20 @@ gate, `pip-audit`, `gitleaks`, and a `data/`-never-tracked check.
 Phase 17 also found and fixed a real gap: prompts.md's mandatory
 "ignore embedded instructions" guardrail sentence was missing from 9
 of 10 prompts handling untrusted content (only the delimiter tags were
-present) — every prompt now carries both. Next up per
-`implementation_order.md`/`phases.md` is Phase 18 (Deployment & OSS
-Release): README/quickstart polish, CONTRIBUTING.md, issue/PR
-templates can proceed directly, but its license-confirmation and
-tagged-release steps explicitly require the maintainer's go-ahead
-before acting (tasks.md T18.3) — ask before doing either. Do not write
-`jobhunt_core` source files without checking `progress_log.md` first
-for the latest open items — this section is a snapshot, not a
-substitute for it.
+present) — every prompt now carries both. Phase 18 T18.1-T18.2 added
+`docs/quickstart.md`, expanded `README.md`, `CONTRIBUTING.md`, and
+`.github/ISSUE_TEMPLATE/`/`PULL_REQUEST_TEMPLATE.md`. Also disclosed,
+not silently resolved: phases.md's Phase 18 AC references `/scrape`/
+`/apply` CLI commands that were never built in any phase (illustrative
+names inherited from the reference architecture, not real
+deliverables in tasks.md anywhere) — running the full pipeline today
+means calling agents directly in Python, as
+`tests/e2e/test_full_apply_pipeline.py` does. Remaining: T18.3
+(license file + tagged release) is blocked on the maintainer's
+explicit go-ahead per tasks.md's own instruction — ask before applying
+`LICENSE` or pushing a tag. Do not write `jobhunt_core` source files
+without checking `progress_log.md` first for the latest open items —
+this section is a snapshot, not a substitute for it.
 
 ## Project Philosophy
 
