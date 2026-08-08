@@ -41,6 +41,9 @@ dev = [
     "pytest-cov>=5.0",
     "pre-commit>=3.7",
     "types-PyYAML>=6.0",
+    # Phase 17 (tasks.md T17.2, rules.md §Dependency Management): CI
+    # dependency vulnerability scanning.
+    "pip-audit>=2.7",
     # Fixture generation only (tests/fixtures/cvs/_generate.py) -- not used at
     # runtime or imported by the test suite itself.
     "reportlab>=4.2",

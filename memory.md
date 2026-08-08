@@ -1,6 +1,6 @@
 # Project Memory — JOB_HUNT
 
-Status: Current snapshot · Last updated: 2026-08-08 (Phase 16)
+Status: Current snapshot · Last updated: 2026-08-08 (Phase 17)
 
 This is what an AI coding agent (or a new human contributor) should
 internalize before touching this repo. It's a snapshot, not a spec —
@@ -9,7 +9,7 @@ those win; update this file to match.
 
 ## Current Status
 
-**Phases 1–16 complete** (Foundation, Configuration, Core AI/LLM
+**Phases 1–17 complete** (Foundation, Configuration, Core AI/LLM
 Provider Layer, Storage & Schemas, CV Analysis/Resume Analysis Agent,
 Skill Gap Analysis/Skill Gap Agent, Job Search/Job Search Agent +
 source connectors, Job Matching/Job Matching Agent, Ranking, ATS
@@ -58,15 +58,23 @@ in the CLI layer, not automatically. Golden-file eval suites exist for
 three agents (`tests/eval/{skill_gap,job_matching,interview_prep}/`);
 Resume Customization/Cover Letter/Application Tracking/Career
 Analytics use direct fixture tests instead (real LaTeX compiles or
-pure deterministic logic don't fit the golden-file YAML shape). Next
-up per `implementation_order.md`/`phases.md` is Phase 17 (Testing &
-Quality Hardening) — an E2E fixture pipeline test, an 80% coverage CI
-gate, and `pip-audit`/secret-scanning wired into CI — then Phase 18
-(Deployment & OSS Release), whose license-confirmation and
+pure deterministic logic don't fit the golden-file YAML shape).
+Phase 17 added `tests/e2e/test_full_apply_pipeline.py` (the whole
+Resume Analysis→Application Tracking chain against one scripted LLM,
+two real LaTeX compiles), `tests/security/test_prompt_injection_guardrails.py`,
+and hardened `.github/workflows/ci.yml` with a `--cov-fail-under=80`
+gate, `pip-audit`, `gitleaks`, and a `data/`-never-tracked check.
+Phase 17 also found and fixed a real gap: prompts.md's mandatory
+"ignore embedded instructions" guardrail sentence was missing from 9
+of 10 prompts handling untrusted content (only the delimiter tags were
+present) — every prompt now carries both. Next up per
+`implementation_order.md`/`phases.md` is Phase 18 (Deployment & OSS
+Release): README/quickstart polish, CONTRIBUTING.md, issue/PR
+templates can proceed directly, but its license-confirmation and
 tagged-release steps explicitly require the maintainer's go-ahead
-before acting (tasks.md T18.3, already flagged to the user). Do not
-write `jobhunt_core` source files without checking `progress_log.md`
-first for the latest open items — this section is a snapshot, not a
+before acting (tasks.md T18.3) — ask before doing either. Do not write
+`jobhunt_core` source files without checking `progress_log.md` first
+for the latest open items — this section is a snapshot, not a
 substitute for it.
 
 ## Project Philosophy

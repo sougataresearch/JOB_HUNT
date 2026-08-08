@@ -7,13 +7,15 @@ interviews, and tracks every application — all running on your own
 machine, driven through [Claude Code](https://claude.com/claude-code)
 commands, with no mandatory cloud backend beyond your chosen LLM API.
 
-**Phases 1–16 of 18 are complete** — eleven real, tested agents
+**Phases 1–17 of 18 are complete** — eleven real, tested agents
 (`resume_analysis`, `skill_gap`, `job_search`, `job_matching`,
 `ats_optimization`, `resume_customization`, `cover_letter`,
 `email_generation`, `application_tracking`, `interview_prep`,
 `career_analytics`), a working CLI (`setup`, `rank`, `outcome`,
-`interview`, `report`), a compiling LaTeX rendering pipeline, and an
-offline HTML analytics dashboard. See [`phases.md`](phases.md) and
+`interview`, `report`), a compiling LaTeX rendering pipeline, an
+offline HTML analytics dashboard, an end-to-end fixture pipeline test,
+and CI gates (lint, types, tests, ≥80% coverage, `pip-audit`,
+secret scanning). See [`phases.md`](phases.md) and
 [`implementation_order.md`](implementation_order.md) for what's built
 and what's left, and [`progress_log.md`](progress_log.md) for the
 detailed, dated build history.
@@ -52,9 +54,9 @@ auditable AI agents you can inspect, override, and extend.
 
 ## Status
 
-**Phases 1–16 complete** (Foundation through Career Analytics).
-Still open: Testing & Quality Hardening (Phase 17) and Deployment &
-Open-Source Release (Phase 18) — see [`phases.md`](phases.md) for the full roadmap and
+**Phases 1–17 complete** (Foundation through Testing & Quality
+Hardening). Still open: Deployment & Open-Source Release (Phase 18) —
+see [`phases.md`](phases.md) for the full roadmap and
 [`memory.md`](memory.md) for a current-state snapshot. Check
 [`progress_log.md`](progress_log.md) for the latest dated entry before
 starting any substantive work — it carries forward every known open
@@ -77,8 +79,9 @@ not real model quality).
   response/interview/offer rates by role and source.
 - Every agent above `setup`/`rank`/`outcome`/`interview`/`report` is
   directly callable via its `Agent.run(input, ctx)` interface
-  (`api.md` §0); end-to-end orchestration across the full pipeline is
-  Phase 17 work.
+  (`api.md` §0); `tests/e2e/test_full_apply_pipeline.py` chains the
+  full Resume Analysis → Application Tracking sequence end to end
+  against fixture data.
 
 ## License
 

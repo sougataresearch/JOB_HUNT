@@ -1547,3 +1547,91 @@ layer (deferred, see above) and `run_report()` joining the existing
 
 **Not yet done:** commit/push for this phase — next action. Phase 17
 (Testing & Quality Hardening) has not started.
+
+## 2026-08-08 — Phase 17 (Testing & Quality Hardening) complete
+
+**Built, per `tasks.md` T17.1–T17.2:**
+- `tests/e2e/test_full_apply_pipeline.py`: Resume Analysis -> Job
+  Matching -> ATS Optimization -> Resume Customization -> Cover Letter
+  -> Email Generation -> Application Tracking, chained in one test
+  against fixture CV (`tests/fixtures/cvs/jane_doe_complete.md`) +
+  fixture posting content, via a single ordered `_ScriptedLLM`
+  (extends the pattern from `test_resume_customization_agent.py`/
+  `test_cover_letter_agent.py` across many more agent types). Two real
+  LaTeX compiles happen inside it (Resume Customization, Cover
+  Letter) -- deliberately not mocked, since testing.md §6's own
+  acceptance bar ("generated PDFs exist on disk and pass ATS text
+  verification") can only be proven against a real compile. The
+  fixture posting is written so the deterministic ATS keyword-gap step
+  finds exactly one real gap ("Kubernetes") and nothing else, letting
+  the whole pipeline run on data that stays honest end to end (no
+  fabricated match). Job Search Agent itself and Interview Prep/Career
+  Analytics are out of scope, matching testing.md §6's literal
+  "Resume Analysis -> ... -> Application Tracking" framing.
+- `.github/workflows/ci.yml`: a coverage gate (`pytest
+  --cov-fail-under=80`, PRD.md §7/rules.md §Testing Requirements —
+  applied only in CI, not added to `pyproject.toml`'s global
+  `addopts`, since that would break fast, single-file local test runs
+  used constantly throughout this whole project), a `pip-audit` step
+  (`pip-audit>=2.7` added to `[dev]`), a `gitleaks/gitleaks-action`
+  secret-scan step, and a new explicit check that fails the build if
+  anything under `data/` is ever git-tracked (rules.md §Secrets
+  Management's own literal requirement, not previously wired in).
+
+**A real, load-bearing gap found and closed, not a hypothetical
+one:** writing the `tests/fixtures/postings/` prompt-injection fixture
+(testing.md §9) meant first checking whether the guardrail it's
+supposed to test even exists. It didn't, almost everywhere:
+prompts.md's own "mandatory block" (delimit untrusted content AND
+explicitly instruct the model to ignore embedded instructions within
+it) was only present in 1 of 10 prompts that handle untrusted content
+(`resume_analysis/extract_profile`, and even there the guardrail
+sentence lived in the User Template, not the System section). Every
+other prompt (`job_matching/score`, `ats/analyze`, `skill_gap/analyze`,
+`resume_customization/{draft,review}`, `cover_letter/{draft,review}`,
+`email/draft`, `interview/prepare`) used the `<untrusted_content>`
+delimiter correctly but never told the model to ignore embedded
+instructions -- a real, binding-rule violation (rules.md §Prompt
+Engineering Standards) across nearly the whole prompt library, not
+caught until a test was written that actually checked for it. Fixed
+all 10 in place (no version bump -- none has been used in a real
+logged orchestrator run yet, since no such orchestrator exists,
+`prompts.md`'s "no in-place edit once used in a logged run" rule
+doesn't apply here), moving `resume_analysis`'s guardrail into System
+too for consistency. `tests/security/test_prompt_injection_guardrails.py`
+now checks all 10 structurally (guardrail language present, untrusted
+content actually lands inside the delimiters) plus one behavioral
+check that `JobMatchingAgent`'s own code applies no special handling
+to injection-shaped text -- with an explicit, honest disclaimer that
+none of this proves a *real* LLM resists the injection (needs a live
+or cassette-based call, a carried-forward open item).
+
+**`pip-audit` run for real, not assumed clean:** first run found 5
+known CVEs, all in `pip` itself (25.3, fixed in 26.1.2) -- none in any
+of `jobhunt_core`'s actual runtime dependencies. Verified the fix
+(`python -m pip install --upgrade pip` before the audit) resolves it
+cleanly by re-running locally, then wired that exact sequence into CI
+rather than assuming it would work.
+
+**Verified, not assumed:** `ruff check`, `ruff format --check`, `mypy
+--strict` (85 source files), full `pytest` including the new E2E test
+and security suite (304 passed, up from 292 -- 97% coverage
+maintained, comfortably above the new 80% CI floor).
+`pre-commit run --all-files` hit the familiar ruff-version-drift
+oscillation on 4 files on the first run; stable on the second.
+
+**Still open:** everything carried from Phase 16 (license
+confirmation, Ollama live-server smoke test, real LLM pricing, native
+system-prompt support on `LLMProvider`, `populate_by_name=True` audit,
+the recorded-cassette eval harness -- now also the thing that would
+let the prompt-injection test actually prove real-model resistance,
+not just structural correctness, Greenhouse rate-limit enforcement,
+optional LLM-assisted manual-paste normalization, `agent_runs`/
+`prompt_versions` unbuilt, Windows LaTeX setup documentation deferred
+to Phase 18, the optional Career Analytics narrative layer,
+`run_report()`'s `engine.dispose()` gap).
+
+**Not yet done:** commit/push for this phase — next action. Phase 18
+(Deployment & Open-Source Release) has not started; its license-
+confirmation and tagged-release steps require explicit maintainer
+go-ahead before acting (tasks.md T18.3).

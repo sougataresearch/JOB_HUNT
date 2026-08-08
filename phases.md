@@ -2,7 +2,7 @@
 
 Status: Draft v1.0 · Last updated: 2026-08-02 · Progress last marked: 2026-08-08
 
-**Phases 1–16 of 18 are complete** (✅ below); 17–18 (⬜) are not yet
+**Phases 1–17 of 18 are complete** (✅ below); 18 (⬜) is not yet
 started. Each phase's `**Status:**` line is a pointer, not the record
 of truth — see `progress_log.md` for the detailed, dated build history
 behind each completed phase, and `memory.md` for a current-state
@@ -375,7 +375,7 @@ and renders offline with no network calls.
 
 ## Phase 17 — Testing & Quality Hardening
 
-**Status:** ⬜ Not started.
+**Status:** ✅ Complete — see `progress_log.md`.
 
 **Objectives:** Close coverage gaps and stabilize the full pipeline
 before any public release, per `testing.md`.

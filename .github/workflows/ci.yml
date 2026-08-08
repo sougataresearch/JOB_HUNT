@@ -28,5 +28,51 @@ jobs:
       - name: Type check (mypy)
         run: mypy
 
-      - name: Run tests
-        run: pytest
+      # tasks.md T17.2: coverage gate >=80% (PRD.md §7, rules.md
+      # §Testing Requirements). Overall coverage is ~97% as of Phase
+      # 16 -- 80 is the binding floor, not a target to hug.
+      - name: Run tests with coverage gate
+        run: pytest --cov-fail-under=80
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # rules.md §Security Rules: "CI includes secret scanning (e.g.,
+      # gitleaks or equivalent)."
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package with dev dependencies
+        run: pip install -e ".[dev]"
+
+      # rules.md §Dependency Management: "pip-audit (or equivalent)
+      # run in CI on every PR that touches dependencies." Upgrading pip
+      # first is deliberate, not incidental -- pip itself was the only
+      # source of findings the first time this was run locally (fixed
+      # in pip>=26.1.2), and jobhunt_core's own dependencies had none.
+      - name: Dependency vulnerability scan (pip-audit)
+        run: |
+          python -m pip install --upgrade pip
+          pip-audit
+
+      # rules.md §Secrets Management: "verified by .gitignore plus a
+      # CI check that fails the build if a path matching data/**
+      # (excluding .gitkeep) is staged."
+      - name: Verify no data/ content is committed
+        run: |
+          matches=$(git ls-files 'data/**' | grep -v '\.gitkeep$' || true)
+          if [ -n "$matches" ]; then
+            echo "Files under data/ are tracked in git (must stay gitignored):"
+            echo "$matches"
+            exit 1
+          fi
